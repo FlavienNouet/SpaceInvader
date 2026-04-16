@@ -22,6 +22,7 @@ public class Game
     private EnemyBlock enemies = null!;
 
     private readonly Size gameSize;
+    private int score;
     private bool isUpdating;
     private GameState state = GameState.Play;
     private bool pKeyWasDown;
@@ -31,6 +32,7 @@ public class Game
 
     public PlayerSpaceship PlayerShip => playerShip;
     public Size GameSize => gameSize;
+    public int Score => score;
 
     public Game(Size clientSize)
     {
@@ -50,6 +52,11 @@ public class Game
         }
 
         objects.Add(gameObject);
+    }
+
+    public void AddEnemyKillScore()
+    {
+        score += 100;
     }
 
     private void AddBunkers()
@@ -133,7 +140,7 @@ public class Game
     {
         ArgumentNullException.ThrowIfNull(graphics);
 
-        graphics.Clear(Color.Gray);
+        graphics.Clear(Color.Black);
 
         foreach (GameObject gameObject in objects)
         {
@@ -142,6 +149,8 @@ public class Game
                 gameObject.Draw(graphics);
             }
         }
+        graphics.DrawString($"Score: {score}", SystemFonts.DefaultFont, Brushes.White, 10f, gameSize.Height - 24f);
+
         string message = state switch
         {
             GameState.Pause => "Pause",
@@ -160,17 +169,18 @@ public class Game
             };
 
             RectangleF bounds = new(0, 0, gameSize.Width, gameSize.Height);
-            graphics.DrawString(message, font, Brushes.Black, bounds, format);
+            graphics.DrawString(message, font, Brushes.Lime, bounds, format);
             return;
         }
 
-        graphics.DrawString(message, SystemFonts.DefaultFont, Brushes.Black, 10f, 10f);
+         graphics.DrawString(message, SystemFonts.DefaultFont, Brushes.White, 10f, 10f);
     }
 
     private void InitializeGame()
     {
         objects.Clear();
         pendingObjects.Clear();
+        score = 0;
         isUpdating = false;
         pKeyWasDown = false;
         spaceKeyWasDown = false;

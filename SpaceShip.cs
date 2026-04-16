@@ -70,6 +70,7 @@ public class SpaceShip : SimpleObject
             Bitmap explosionImage = Game.CreateEnemyExplosionImage();
             Explosion explosion = new Explosion(Position, explosionImage);
             game.AddObject(explosion);
+            game.AddEnemyKillScore();
             Game.PlayInvaderKilledSound();
         }
     }

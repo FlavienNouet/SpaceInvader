@@ -92,11 +92,40 @@ internal static class PlayerSpaceshipGraphicsExtensions
 
     public static Graphics DrawLives(this Graphics graphics, int lives, Vecteur2d position, Bitmap image)
     {
-        string text = $"Vies: {lives}";
-        float textX = (float)position.X + image.Width + 8f;
-        float textY = (float)position.Y + 8f;
+        int displayedLives = Math.Max(0, lives);
+        float startX = (float)position.X + image.Width + 8f;
+        float startY = (float)position.Y + 8f;
+        const float heartSize = 12f;
+        const float spacing = 4f;
 
-        graphics.DrawString(text, SystemFonts.DefaultFont, Brushes.White, textX, textY);
+        for (int i = 0; i < displayedLives; i++)
+        {
+            float heartX = startX + i * (heartSize + spacing);
+            DrawHeart(graphics, heartX, startY, heartSize);
+        }
         return graphics;
+    }
+    private static void DrawHeart(Graphics graphics, float x, float y, float size)
+    {
+        using SolidBrush fillBrush = new(Color.Red);
+        using Pen borderPen = new(Color.DarkRed);
+
+        float half = size / 2f;
+        float quarter = size / 4f;
+
+        graphics.FillEllipse(fillBrush, x, y, half, half);
+        graphics.FillEllipse(fillBrush, x + half, y, half, half);
+
+        PointF[] triangle =
+        [
+            new PointF(x, y + quarter),
+            new PointF(x + size, y + quarter),
+            new PointF(x + half, y + size)
+        ];
+
+        graphics.FillPolygon(fillBrush, triangle);
+        graphics.DrawEllipse(borderPen, x, y, half, half);
+        graphics.DrawEllipse(borderPen, x + half, y, half, half);
+        graphics.DrawPolygon(borderPen, triangle);
     }
 }
