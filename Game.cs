@@ -5,17 +5,20 @@ public class Game
     public enum GameState
     {
         Play,
-        Pause
+        Pause,
+        Win,
+        Lost
     }
     private readonly List<GameObject> objects = new();
     private readonly List<GameObject> pendingObjects = new();
-    private readonly PlayerSpaceship playerShip;
-    private readonly EnemyBlock enemies;
+     private PlayerSpaceship playerShip = null!;
+    private EnemyBlock enemies = null!;
 
     private readonly Size gameSize;
     private bool isUpdating;
     private GameState state = GameState.Play;
     private bool pKeyWasDown;
+    private bool spaceKeyWasDown;
 
     public IReadOnlyList<GameObject> Objects => objects;
 
@@ -25,16 +28,7 @@ public class Game
     public Game(Size clientSize)
     {
         gameSize = clientSize;
-        Bitmap shipImage = CreatePlayerShipImage();
-        Vecteur2d startPosition = new(
-            (clientSize.Width - shipImage.Width) / 2.0,
-            Math.Max(0, clientSize.Height - shipImage.Height - 20));
-
-        playerShip = new PlayerSpaceship(this, startPosition, 3, shipImage, gameSize);
-        objects.Add(playerShip);
-         enemies = CreateEnemyBlock();
-        AddObject(enemies);
-        AddBunkers();
+        InitializeGame();
     }
 
     public void AddObject(GameObject gameObject)
@@ -69,15 +63,32 @@ public class Game
     }
      public void Update(double deltaTimeSeconds)
     {
-        if (ReleaseKey(Keys.P))
+        if (state == GameState.Win || state == GameState.Lost)
         {
-            state = state == GameState.Play ? GameState.Pause : GameState.Play;
+            if (KeyPressed(Keys.Space, ref spaceKeyWasDown))
+            {
+                InitializeGame();
+            }
+
+            return;
         }
 
         if (state == GameState.Pause)
         {
+            if (KeyPressed(Keys.P, ref pKeyWasDown))
+            {
+                state = GameState.Play;
+            }
+
             return;
         }
+
+        if (KeyPressed(Keys.P, ref pKeyWasDown))
+        {
+            state = GameState.Pause;
+            return;
+        }
+
         isUpdating = true;
 
         foreach (GameObject gameObject in objects)
@@ -93,12 +104,28 @@ public class Game
             pendingObjects.Clear();
         }
 
+        if (enemies.IsAlive() && enemies.Position.Y + enemies.Size.Height >= playerShip.Position.Y)
+        {
+            playerShip.Lives = 0;
+        }
+
+        if (!playerShip.IsAlive())
+        {
+            state = GameState.Lost;
+        }
+        else if (!enemies.IsAlive())
+        {
+            state = GameState.Win;
+        }
+
         objects.RemoveAll(gameObject => !gameObject.IsAlive());
     }
 
     public void Draw(Graphics graphics)
     {
         ArgumentNullException.ThrowIfNull(graphics);
+
+        graphics.Clear(Color.Gray);
 
         foreach (GameObject gameObject in objects)
         {
@@ -107,9 +134,15 @@ public class Game
                 gameObject.Draw(graphics);
             }
         }
-        string message = state == GameState.Pause ? "Pause" : "Jeu en cours";
+        string message = state switch
+        {
+            GameState.Pause => "Pause",
+            GameState.Win => "Gagné",
+            GameState.Lost => "Perdu",
+            _ => "Jeu en cours"
+        };
 
-        if (state == GameState.Pause)
+        if (state is GameState.Pause or GameState.Win or GameState.Lost)
         {
             using Font font = new(FontFamily.GenericSansSerif, 32, FontStyle.Bold, GraphicsUnit.Point);
             using StringFormat format = new()
@@ -126,17 +159,35 @@ public class Game
         graphics.DrawString(message, SystemFonts.DefaultFont, Brushes.Black, 10f, 10f);
     }
 
-    private bool ReleaseKey(Keys key)
+    private void InitializeGame()
+    {
+        objects.Clear();
+        pendingObjects.Clear();
+        isUpdating = false;
+        pKeyWasDown = false;
+        spaceKeyWasDown = false;
+        state = GameState.Play;
+
+        Bitmap shipImage = CreatePlayerShipImage();
+        Vecteur2d startPosition = new(
+            (gameSize.Width - shipImage.Width) / 2.0,
+            Math.Max(0, gameSize.Height - shipImage.Height - 20));
+
+        playerShip = new PlayerSpaceship(this, startPosition, 3, shipImage, gameSize);
+        objects.Add(playerShip);
+
+        enemies = CreateEnemyBlock();
+        AddObject(enemies);
+
+        AddBunkers();
+    }
+
+     private static bool KeyPressed(Keys key, ref bool wasDown)
     {
         bool isDown = (GetAsyncKeyState((int)key) & 0x8000) != 0;
-        bool released = pKeyWasDown && !isDown;
-
-        if (key == Keys.P)
-        {
-            pKeyWasDown = isDown;
-        }
-
-        return released;
+        bool pressed = isDown && !wasDown;
+        wasDown = isDown;
+        return pressed;
     }
 
      private EnemyBlock CreateEnemyBlock()

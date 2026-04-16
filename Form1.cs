@@ -10,6 +10,7 @@ public partial class Form1 : Form
     {
         InitializeComponent();
         DoubleBuffered = true;
+        BackColor = Color.Gray;
 
         game = new Game(ClientSize);
         lastFrameUtc = DateTime.UtcNow;
