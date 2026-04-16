@@ -13,10 +13,8 @@ public class Game
     private const int MaxWaves = 5;
     private const double WaveBannerDurationSeconds = 1.8;
     private const int DoubleShotScoreThreshold = 500;
-    private const int BombScoreThreshold = 700;
     private const int HomingShotScoreThreshold = 1000;
     private const double DoubleShotDurationSeconds = 20;
-    private const double BombModeDurationSeconds = 5;
     private const double HomingShotDurationSeconds = 10;
     public enum GameState
     {
@@ -50,11 +48,10 @@ public class Game
     private GameState state = GameState.Menu;
 
     private double doubleShotRemainingSeconds;
-    private double bombModeRemainingSeconds;
     private double homingShotRemainingSeconds;
-    private bool doubleShotUnlocked;
-    private bool bombUnlocked;
-    private bool homingUnlocked;
+
+    private int lastDoubleShotTriggerIndex = -1;
+    private int lastHomingShotTriggerIndex = -1;
     private bool pKeyWasDown;
     private bool spaceKeyWasDown;
     private Difficulty selectedDifficulty = Difficulty.Easy;
@@ -68,7 +65,6 @@ public class Game
     private bool escapeKeyWasDown;
     private bool vKeyWasDown;
     public Difficulty SelectedDifficulty => selectedDifficulty;
-    public bool IsBombModeActive => bombModeRemainingSeconds > 0;
     public static bool IsMuted => isMuted;
 
     public Game(Size clientSize)
@@ -200,10 +196,6 @@ public class Game
             doubleShotRemainingSeconds = Math.Max(0, doubleShotRemainingSeconds - deltaTimeSeconds);
         }
 
-        if (bombModeRemainingSeconds > 0)
-        {
-            bombModeRemainingSeconds = Math.Max(0, bombModeRemainingSeconds - deltaTimeSeconds);
-        }
 
         if (homingShotRemainingSeconds > 0)
         {
@@ -278,12 +270,6 @@ public class Game
         if (IsDoubleShotActive)
         {
             graphics.DrawString($"Double tir: {Math.Ceiling(doubleShotRemainingSeconds)}s", SystemFonts.DefaultFont, Brushes.LightBlue, bonusX, bonusY);
-            bonusY -= 18f;
-        }
-
-        if (IsBombModeActive)
-        {
-            graphics.DrawString($"Bombe: {Math.Ceiling(bombModeRemainingSeconds)}s", SystemFonts.DefaultFont, Brushes.Orange, bonusX, bonusY);
             bonusY -= 18f;
         }
 
@@ -383,11 +369,9 @@ private void DrawMenu(Graphics graphics)
         waveNumber = 1;
         waveBannerRemainingSeconds = WaveBannerDurationSeconds;
         doubleShotRemainingSeconds = 0;
-        bombModeRemainingSeconds = 0;
         homingShotRemainingSeconds = 0;
-        doubleShotUnlocked = false;
-        bombUnlocked = false;
-        homingUnlocked = false;
+        lastDoubleShotTriggerIndex = -1;
+        lastHomingShotTriggerIndex = -1;
         isUpdating = false;
         pKeyWasDown = false;
         spaceKeyWasDown = false;
@@ -430,32 +414,33 @@ private void StartNextWave()
         vKeyWasDown = false;
         waveBannerRemainingSeconds = 0;
         doubleShotRemainingSeconds = 0;
-        bombModeRemainingSeconds = 0;
         homingShotRemainingSeconds = 0;
-        doubleShotUnlocked = false;
-        bombUnlocked = false;
-        homingUnlocked = false;
+        lastDoubleShotTriggerIndex = -1;
+        lastHomingShotTriggerIndex = -1;
+        
         state = GameState.Menu;
     }
 
     private void CheckScoreBonuses()
     {
-        if (!doubleShotUnlocked && score >= DoubleShotScoreThreshold)
+        if (score >= DoubleShotScoreThreshold)
         {
-            doubleShotUnlocked = true;
-            doubleShotRemainingSeconds = DoubleShotDurationSeconds;
+            int triggerIndex = (score - DoubleShotScoreThreshold) / 1000;
+            if (triggerIndex > lastDoubleShotTriggerIndex)
+            {
+                lastDoubleShotTriggerIndex = triggerIndex;
+                doubleShotRemainingSeconds = DoubleShotDurationSeconds;
+            }
         }
 
-        if (!bombUnlocked && score >= BombScoreThreshold)
+        if (score >= HomingShotScoreThreshold)
         {
-            bombUnlocked = true;
-            bombModeRemainingSeconds = BombModeDurationSeconds;
-        }
-
-        if (!homingUnlocked && score >= HomingShotScoreThreshold)
-        {
-            homingUnlocked = true;
-            homingShotRemainingSeconds = HomingShotDurationSeconds;
+            int triggerIndex = (score - HomingShotScoreThreshold) / 1000;
+            if (triggerIndex > lastHomingShotTriggerIndex)
+            {
+                lastHomingShotTriggerIndex = triggerIndex;
+                homingShotRemainingSeconds = HomingShotDurationSeconds;
+            }
         }
     }
 

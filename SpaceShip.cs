@@ -60,23 +60,67 @@ public class SpaceShip : SimpleObject
         graphics.DrawImage(imageToUse, new RectangleF((float)Position.X, (float)Position.Y, imageToUse.Width, imageToUse.Height));
     }
 
-    protected override void OnCollision(Missile missile, int numberOfPixelsInCollision)
+    public override void Collision(Missile missile)
     {
-        int damage = Math.Min(Lives, missile.Lives);
-        Lives = Math.Max(0, Lives - damage);
-        missile.Lives = Math.Max(0, missile.Lives - damage);
+        ArgumentNullException.ThrowIfNull(missile);
 
-         HandleDeath();
-    }
-
-    public void DestroyByBomb()
-    {
-        if (!IsAlive())
+        if (!IsAlive() || !missile.IsAlive() || Camp == missile.Camp || ReferenceEquals(this, missile))
         {
             return;
         }
 
-        Lives = 0;
+        Rectangle objectRectangle = GetObjectRectangle(Position, Image.Width, Image.Height);
+        Rectangle missileRectangle = GetObjectRectangle(missile.Position, missile.Image.Width, missile.Image.Height);
+
+        if (!objectRectangle.IntersectsWith(missileRectangle))
+        {
+            return;
+        }
+
+        int numberOfPixelsInCollision = 0;
+
+        for (int missileLocalY = 0; missileLocalY < missile.Image.Height; missileLocalY++)
+        {
+            for (int missileLocalX = 0; missileLocalX < missile.Image.Width; missileLocalX++)
+            {
+                Color missilePixel = missile.Image.GetPixel(missileLocalX, missileLocalY);
+
+                if (missilePixel.A == 0)
+                {
+                    continue;
+                }
+
+                int screenX = missileRectangle.Left + missileLocalX;
+                int screenY = missileRectangle.Top + missileLocalY;
+                int objectLocalX = screenX - objectRectangle.Left;
+                int objectLocalY = screenY - objectRectangle.Top;
+
+                if (!IsInsideImage(objectLocalX, objectLocalY, Image.Width, Image.Height))
+                {
+                    continue;
+                }
+
+                Color objectPixel = Image.GetPixel(objectLocalX, objectLocalY);
+
+                if (objectPixel.A == 0)
+                {
+                    continue;
+                }
+
+                Image.SetPixel(objectLocalX, objectLocalY, Color.Transparent);
+                numberOfPixelsInCollision++;
+            }
+        }
+
+        if (numberOfPixelsInCollision <= 0)
+        {
+            return;
+        }
+
+        int damage = Math.Min(Lives, missile.Lives);
+        Lives = Math.Max(0, Lives - damage);
+        missile.Lives = Math.Max(0, missile.Lives - damage);
+
         HandleDeath();
     }
 
@@ -99,21 +143,17 @@ public class SpaceShip : SimpleObject
             return;
         }
 
-        if (Camp == GameObject.Side.Ally && game.IsBombModeActive && !shootDownwards)
-        {
-            ShootBomb();
-            return;
-        }
-
         CleanupMissiles();
         if (activeMissiles.Count > 0)
         {
-            ShootDouble();
             return;
         }
 
-        if (Camp == GameObject.Side.Ally && game.IsDoubleShotActive && !shootDownwards)
+        bool isPlayerShot = Camp == GameObject.Side.Ally && !shootDownwards;
+
+        if (isPlayerShot && game.IsDoubleShotActive)
         {
+            ShootDouble();
             return;
         }
 
@@ -124,23 +164,11 @@ public class SpaceShip : SimpleObject
             shootDownwards ? Position.Y + Image.Height : Position.Y - missileImage.Height);
 
         double verticalDirection = shootDownwards ? 1 : -1;
-        bool homingEnabled = Camp == GameObject.Side.Ally && game.IsHomingShotActive;
+        bool homingEnabled = isPlayerShot && game.IsHomingShotActive;
 
         Missile missile = new Missile(Camp, game, missilePosition, 1, missileImage, game.GameSize, 400, 0, verticalDirection, animationFrames, homingEnabled);
         activeMissiles.Add(missile);
         game.AddObject(missile);
-        Game.PlayShootSound();
-    }
-
-    private void ShootBomb()
-    {
-        if (game is null)
-        {
-            return;
-        }
-
-        Bomb bomb = new(game, game.Enemies, new Vecteur2d(Position.X + Image.Width / 2.0, Position.Y - 8), new Bitmap(1, 1));
-        game.AddObject(bomb);
         Game.PlayShootSound();
     }
 
@@ -207,6 +235,17 @@ public class SpaceShip : SimpleObject
     {
         activeMissiles.RemoveAll(m => !m.IsAlive());
     }
+
+    private static Rectangle GetObjectRectangle(Vecteur2d position, int width, int height)
+    {
+        return new Rectangle((int)Math.Floor(position.X), (int)Math.Floor(position.Y), width, height);
+    }
+
+    private static bool IsInsideImage(int x, int y, int width, int height)
+    {
+        return x >= 0 && y >= 0 && x < width && y < height;
+    }
+
     protected static bool IsKeyDown(Keys key)
     {
         return (GetAsyncKeyState((int)key) & 0x8000) != 0;

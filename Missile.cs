@@ -127,10 +127,9 @@ public class Missile : SimpleObject
         Bitmap currentFrame = animationFrames[currentFrameIndex];
         graphics.DrawImage(currentFrame, (float)Position.X, (float)Position.Y, currentFrame.Width, currentFrame.Height);
     }
-     protected override void OnCollision(Missile missile, int numberOfPixelsInCollision)
+    public override void Collision(Missile missile)
     {
-        Lives = 0;
-        missile.Lives = 0;
+        // Missile collisions are handled by the target object.
     }
 
 }
