@@ -219,7 +219,12 @@ public class Game
     private static extern short GetAsyncKeyState(int vKey);
     private static Bitmap CreatePlayerShipImage()
     {
-        return CreateSpriteFromSheet(PlayerShipSourceRect, new Size(48, 48));
+        string filePath = Path.Combine(AppContext.BaseDirectory, "assets", "Sprites", "Invaders", "space__0006_Player.png");
+        if (!File.Exists(filePath))
+        {
+            throw new FileNotFoundException($"Sprite file not found: {filePath}");
+        }
+        return new Bitmap(Image.FromFile(filePath));
     }
 
      private static Bitmap LoadEnemyAnimationFrame(string frameName)
@@ -234,7 +239,22 @@ public class Game
 
         internal static Bitmap CreateBunkerImage()
     {
-        return CreateSpriteFromSheet(BunkerSourceRect, new Size(60, 40));
+        string filePath = Path.Combine(AppContext.BaseDirectory, "assets", "Sprites", "Invaders", "space__0008_ShieldFull.png");
+        if (!File.Exists(filePath))
+        {
+            throw new FileNotFoundException($"Sprite file not found: {filePath}");
+        }
+        return new Bitmap(Image.FromFile(filePath));
+    }
+
+    internal static Bitmap CreateEnemyExplosionImage()
+    {
+        string filePath = Path.Combine(AppContext.BaseDirectory, "assets", "Sprites", "Invaders", "space__0009_EnemyExplosion.png");
+        if (!File.Exists(filePath))
+        {
+            throw new FileNotFoundException($"Sprite file not found: {filePath}");
+        }
+        return new Bitmap(Image.FromFile(filePath));
     }
 
         internal static Bitmap CreateMissileImage()

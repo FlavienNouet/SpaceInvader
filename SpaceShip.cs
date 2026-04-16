@@ -65,6 +65,12 @@ public class SpaceShip : SimpleObject
         int damage = Math.Min(Lives, missile.Lives);
         Lives = Math.Max(0, Lives - damage);
         missile.Lives = Math.Max(0, missile.Lives - damage);
+         if (!IsAlive() && game is not null)
+        {
+            Bitmap explosionImage = Game.CreateEnemyExplosionImage();
+            Explosion explosion = new Explosion(Position, explosionImage);
+            game.AddObject(explosion);
+        }
     }
 
  public void Shoot(bool shootDownwards = false)
