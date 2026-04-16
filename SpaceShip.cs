@@ -2,44 +2,43 @@ namespace SpaceInvader;
 
 public class SpaceShip : SimpleObject
 {
-    private readonly double playerSpeedPixelPerSecond;
-    private readonly Size gameSize;
-    private readonly Game game;
+    protected double PlayerSpeedPixelPerSecond { get; }
+    protected Size GameSize { get; }
+    private readonly Game? game;
 
     private Missile? missile;
 
-    public SpaceShip(Game game, Vecteur2d position, int lives, Bitmap image, Size gameSize, double playerSpeedPixelPerSecond = 200)
+    public SpaceShip(Vecteur2d position, int lives, Bitmap image)
+        : this(null, position, lives, image, Size.Empty)
+    {
+        }
+
+    public SpaceShip(Vecteur2d position, int lives, Bitmap image, Size gameSize, double playerSpeedPixelPerSecond = 200)
+        : this(null, position, lives, image, gameSize, playerSpeedPixelPerSecond)
+    {
+    }
+
+    public SpaceShip(Game? game, Vecteur2d position, int lives, Bitmap image, Size gameSize, double playerSpeedPixelPerSecond = 200)
         : base(position, lives, image)
     {
-        ArgumentNullException.ThrowIfNull(game);
 
-        this.game = game;
-        this.gameSize = gameSize;
-        this.playerSpeedPixelPerSecond = playerSpeedPixelPerSecond;
+        GameSize = gameSize;
+        PlayerSpeedPixelPerSecond = playerSpeedPixelPerSecond;
     }
+    
 
     public override void Update(double deltaTimeSeconds)
     {
-        if (IsKeyDown(Keys.Space))
-        {
-            Shoot();
-        }
-        double moveDistance = playerSpeedPixelPerSecond * deltaTimeSeconds;
-
-        if (IsKeyDown(Keys.Left) || IsKeyDown(Keys.A))
-        {
-            Position = new Vecteur2d(Math.Max(0, Position.X - moveDistance), Position.Y);
-        }
-
-        if (IsKeyDown(Keys.Right) || IsKeyDown(Keys.D))
-        {
-            double maxX = Math.Max(0, gameSize.Width - Image.Width);
-            Position = new Vecteur2d(Math.Min(maxX, Position.X + moveDistance), Position.Y);
-        }
+    
     }
 
  public void Shoot()
     {
+        if (game is null)
+        {
+            return;
+        }
+
         if (missile is not null && missile.IsAlive())
         {
             return;
@@ -53,7 +52,7 @@ public class SpaceShip : SimpleObject
         missile = new Missile(game, missilePosition, 1, missileImage, game.GameSize);
         game.AddObject(missile);
     }
-    private static bool IsKeyDown(Keys key)
+    protected static bool IsKeyDown(Keys key)
     {
         return (GetAsyncKeyState((int)key) & 0x8000) != 0;
     }

@@ -9,7 +9,8 @@ public class Game
     }
     private readonly List<GameObject> objects = new();
     private readonly List<GameObject> pendingObjects = new();
-    private readonly SpaceShip playerShip;
+    private readonly PlayerSpaceship playerShip;
+    private readonly EnemyBlock enemies;
 
     private readonly Size gameSize;
     private bool isUpdating;
@@ -18,7 +19,7 @@ public class Game
 
     public IReadOnlyList<GameObject> Objects => objects;
 
-    public SpaceShip PlayerShip => playerShip;
+    public PlayerSpaceship PlayerShip => playerShip;
     public Size GameSize => gameSize;
 
     public Game(Size clientSize)
@@ -29,8 +30,10 @@ public class Game
             (clientSize.Width - shipImage.Width) / 2.0,
             Math.Max(0, clientSize.Height - shipImage.Height - 20));
 
-        playerShip = new SpaceShip(this, startPosition, 3, shipImage, gameSize);
+        playerShip = new PlayerSpaceship(this, startPosition, 3, shipImage, gameSize);
         objects.Add(playerShip);
+         enemies = CreateEnemyBlock();
+        AddObject(enemies);
         AddBunkers();
     }
 
@@ -136,6 +139,21 @@ public class Game
         return released;
     }
 
+     private EnemyBlock CreateEnemyBlock()
+    {
+        int blockWidth = Math.Max(120, (int)(gameSize.Width * 0.75));
+        double startX = (gameSize.Width - blockWidth) / 2.0;
+
+        EnemyBlock block = new EnemyBlock(new Vecteur2d(startX, 60), blockWidth);
+        Bitmap enemyImage = CreateEnemyShipImage();
+
+        block.AddLine(9, 1, enemyImage);
+        block.AddLine(7, 1, enemyImage);
+        block.AddLine(5, 1, enemyImage);
+
+        return block;
+    }
+
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern short GetAsyncKeyState(int vKey);
     private static Bitmap CreatePlayerShipImage()
@@ -163,6 +181,28 @@ public class Game
         graphics.FillPolygon(bodyBrush, shipPoints);
         graphics.DrawPolygon(outlinePen, shipPoints);
         graphics.FillEllipse(cockpitBrush, 18, 14, 12, 12);
+
+        return bitmap;
+    }
+
+    private static Bitmap CreateEnemyShipImage()
+    {
+        Bitmap bitmap = new(42, 30);
+
+        using Graphics graphics = Graphics.FromImage(bitmap);
+        graphics.Clear(Color.Transparent);
+        graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
+        using Brush bodyBrush = new SolidBrush(Color.DarkSlateGray);
+        using Brush eyeBrush = new SolidBrush(Color.White);
+
+        graphics.FillRectangle(bodyBrush, 3, 10, 36, 12);
+        graphics.FillRectangle(bodyBrush, 8, 4, 26, 8);
+        graphics.FillRectangle(bodyBrush, 6, 22, 6, 6);
+        graphics.FillRectangle(bodyBrush, 30, 22, 6, 6);
+
+        graphics.FillRectangle(eyeBrush, 14, 12, 4, 4);
+        graphics.FillRectangle(eyeBrush, 24, 12, 4, 4);
 
         return bitmap;
     }
