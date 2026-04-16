@@ -6,6 +6,9 @@ public class Game
     private static readonly Rectangle BunkerSourceRect = new(402, 965, 176, 128);
     private static readonly Rectangle MissileSourceRect = new(350, 864, 4, 103);
     private static System.Media.SoundPlayer? shootSound;
+    private static System.Media.SoundPlayer? invaderKilledSound;
+    private static bool backgroundMusicStarted;
+    private const string BackgroundMusicAlias = "bgm_track";
     public enum GameState
     {
         Play,
@@ -32,6 +35,7 @@ public class Game
     public Game(Size clientSize)
     {
         gameSize = clientSize;
+        StartBackgroundMusic();
         InitializeGame();
     }
 
@@ -218,6 +222,50 @@ public class Game
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern short GetAsyncKeyState(int vKey);
+
+     [System.Runtime.InteropServices.DllImport("winmm.dll")]
+    private static extern int mciSendString(string command, System.Text.StringBuilder? returnValue, int returnLength, IntPtr winHandle);
+
+    internal static void StartBackgroundMusic()
+    {
+        if (backgroundMusicStarted)
+        {
+            return;
+        }
+
+        string filePath = Path.Combine(AppContext.BaseDirectory, "assets", "Audio", "spaceinvaders1.mpeg");
+        if (!File.Exists(filePath))
+        {
+            return;
+        }
+
+        // Ensure stale alias from previous sessions is cleared.
+        mciSendString($"close {BackgroundMusicAlias}", null, 0, IntPtr.Zero);
+
+        int openResult = mciSendString($"open \"{filePath}\" type mpegvideo alias {BackgroundMusicAlias}", null, 0, IntPtr.Zero);
+        if (openResult != 0)
+        {
+            return;
+        }
+
+        int playResult = mciSendString($"play {BackgroundMusicAlias} repeat", null, 0, IntPtr.Zero);
+        if (playResult == 0)
+        {
+            backgroundMusicStarted = true;
+        }
+    }
+
+    internal static void StopBackgroundMusic()
+    {
+        if (!backgroundMusicStarted)
+        {
+            return;
+        }
+
+        mciSendString($"stop {BackgroundMusicAlias}", null, 0, IntPtr.Zero);
+        mciSendString($"close {BackgroundMusicAlias}", null, 0, IntPtr.Zero);
+        backgroundMusicStarted = false;
+    }
     private static Bitmap CreatePlayerShipImage()
     {
         string filePath = Path.Combine(AppContext.BaseDirectory, "assets", "Sprites", "Invaders", "space__0006_Player.png");
@@ -322,6 +370,22 @@ public class Game
         }
 
         shootSound.Play();
+    }
+
+     internal static void PlayInvaderKilledSound()
+    {
+        if (invaderKilledSound is null)
+        {
+            string filePath = Path.Combine(AppContext.BaseDirectory, "assets", "Audio", "invaderkilled.wav");
+            if (!File.Exists(filePath))
+            {
+                return;
+            }
+
+            invaderKilledSound = new System.Media.SoundPlayer(filePath);
+        }
+
+        invaderKilledSound.Play();
     }
 
         private static Bitmap CreateSpriteFromSheet(Rectangle sourceRectangle, Size targetSize)

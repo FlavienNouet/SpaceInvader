@@ -35,4 +35,10 @@ public partial class Form1 : Form
         game.Update(deltaTimeSeconds);
         Invalidate();
     }
+
+    protected override void OnFormClosed(FormClosedEventArgs e)
+    {
+        Game.StopBackgroundMusic();
+        base.OnFormClosed(e);
+    }
 }
