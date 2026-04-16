@@ -6,23 +6,25 @@ public class Missile : SimpleObject
 
     private readonly Size gameSize;
     private readonly Game? game;
+    private readonly double verticalDirection;
 
     public Missile(Vecteur2d position, int lives, Bitmap image)
-        : this(GameObject.Side.Ally, null, position, lives, image, SystemInformation.VirtualScreen.Size)
+        : this(GameObject.Side.Ally, null, position, lives, image, SystemInformation.VirtualScreen.Size, 400, -1)
     {
     }
 
     public Missile(Game? game, Vecteur2d position, int lives, Bitmap image, Size gameSize, double vitesse = 400)
-        : this(GameObject.Side.Ally, game, position, lives, image, gameSize, vitesse)
+        : this(GameObject.Side.Ally, game, position, lives, image, gameSize, vitesse, -1)
     {
     }
 
-    public Missile(GameObject.Side camp, Game? game, Vecteur2d position, int lives, Bitmap image, Size gameSize, double vitesse = 400)
+    public Missile(GameObject.Side camp, Game? game, Vecteur2d position, int lives, Bitmap image, Size gameSize, double vitesse, double verticalDirection)
         : base(camp, position, lives, image)
     {
         this.game = game;
         this.gameSize = gameSize;
         Vitesse = vitesse;
+        this.verticalDirection = verticalDirection;
     }
 
     public override void Update(double deltaTimeSeconds)
@@ -32,9 +34,12 @@ public class Missile : SimpleObject
             return;
         }
 
-        Position = new Vecteur2d(Position.X, Position.Y - Vitesse * deltaTimeSeconds);
+        Position = new Vecteur2d(Position.X, Position.Y + verticalDirection * Vitesse * deltaTimeSeconds);
 
-        if (Position.Y + Image.Height < 0 || Position.X > gameSize.Width || Position.Y > gameSize.Height)
+        bool outOfTop = Position.Y + Image.Height < 0;
+        bool outOfBottom = Position.Y > gameSize.Height;
+
+        if (outOfTop || outOfBottom || Position.X > gameSize.Width)
         {
             Lives = 0;
         }

@@ -144,7 +144,7 @@ public class Game
         int blockWidth = Math.Max(120, (int)(gameSize.Width * 0.75));
         double startX = (gameSize.Width - blockWidth) / 2.0;
 
-        EnemyBlock block = new EnemyBlock(new Vecteur2d(startX, 60), blockWidth, gameSize);
+        EnemyBlock block = new EnemyBlock(new Vecteur2d(startX, 60), blockWidth, gameSize, this);
         Bitmap enemyImage = CreateEnemyShipImage();
 
         block.AddLine(9, 1, enemyImage);

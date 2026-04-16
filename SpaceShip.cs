@@ -45,7 +45,7 @@ public class SpaceShip : SimpleObject
         missile.Lives = Math.Max(0, missile.Lives - damage);
     }
 
- public void Shoot()
+ public void Shoot(bool shootDownwards = false)
     {
         if (game is null)
         {
@@ -60,9 +60,11 @@ public class SpaceShip : SimpleObject
         Bitmap missileImage = CreateMissileImage();
         Vecteur2d missilePosition = new(
             Position.X + (Image.Width - missileImage.Width) / 2.0,
-            Position.Y - missileImage.Height);
+            shootDownwards ? Position.Y + Image.Height : Position.Y - missileImage.Height);
 
-        missile = new Missile(game, missilePosition, 1, missileImage, game.GameSize);
+        double verticalDirection = shootDownwards ? 1 : -1;
+
+        missile = new Missile(Camp, game, missilePosition, 1, missileImage, game.GameSize, 400, verticalDirection);
         game.AddObject(missile);
     }
     protected static bool IsKeyDown(Keys key)

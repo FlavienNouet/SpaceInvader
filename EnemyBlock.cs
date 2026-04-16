@@ -5,6 +5,9 @@ public class EnemyBlock : GameObject
     private readonly HashSet<SpaceShip> enemyShips = new();
     private readonly int baseWidth;
     private readonly Size gameSize;
+    private readonly Game? game;
+    private readonly Random random = new();
+    private double randomShootProbability = 0.05;
     private int lineCount;
     private int horizontalDirection = 1;
     private double horizontalSpeedPixelPerSecond = 30;
@@ -17,11 +20,11 @@ public class EnemyBlock : GameObject
     public Vecteur2d Position { get; private set; }
 
     public EnemyBlock(Vecteur2d position, int baseWidth)
-    : this(position, baseWidth, SystemInformation.VirtualScreen.Size)
+    : this(position, baseWidth, SystemInformation.VirtualScreen.Size, null)
     {
     }
 
-    public EnemyBlock(Vecteur2d position, int baseWidth, Size gameSize)
+    public EnemyBlock(Vecteur2d position, int baseWidth, Size gameSize, Game? game)
     : base(GameObject.Side.Enemy)
     {
     
@@ -30,6 +33,7 @@ public class EnemyBlock : GameObject
         Position = position;
         this.baseWidth = Math.Max(1, baseWidth);
         this.gameSize = gameSize;
+        this.game = game;
         Size = Size.Empty;
     }
 
@@ -49,7 +53,7 @@ public class EnemyBlock : GameObject
         for (int i = 0; i < nbShips; i++)
         {
             double shipX = Position.X + i * horizontalStep;
-            SpaceShip enemy = new SpaceShip(new Vecteur2d(shipX, lineY), nbLives, (Bitmap)shipImage.Clone());
+            SpaceShip enemy = new SpaceShip(game, new Vecteur2d(shipX, lineY), nbLives, (Bitmap)shipImage.Clone(), gameSize);
             enemyShips.Add(enemy);
         }
 
@@ -85,6 +89,8 @@ public class EnemyBlock : GameObject
             return;
         }
 
+        TryShoot(deltaTimeSeconds);
+
         double horizontalDelta = horizontalDirection * horizontalSpeedPixelPerSecond * deltaTimeSeconds;
         bool hitLeftBorder = Position.X + horizontalDelta < 0;
         bool hitRightBorder = Position.X + Size.Width + horizontalDelta > gameSize.Width;
@@ -94,6 +100,7 @@ public class EnemyBlock : GameObject
             horizontalDirection *= -1;
             horizontalSpeedPixelPerSecond += HorizontalSpeedIncrease;
             MoveShips(0, DownStepPixels);
+            randomShootProbability += 0.02;
             UpdateSize();
             return;
         }
@@ -136,6 +143,27 @@ public class EnemyBlock : GameObject
         foreach (SpaceShip ship in enemyShips)
         {
             ship.Position = new Vecteur2d(ship.Position.X + deltaX, ship.Position.Y + deltaY);
+        }
+    }
+     private void TryShoot(double deltaTimeSeconds)
+    {
+        if (game is null)
+        {
+            return;
+        }
+
+        foreach (SpaceShip ship in enemyShips)
+        {
+            if (!ship.IsAlive())
+            {
+                continue;
+            }
+
+            double randomValue = random.NextDouble();
+            if (randomValue <= randomShootProbability * deltaTimeSeconds)
+            {
+                ship.Shoot(true);
+            }
         }
     }
 }
