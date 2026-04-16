@@ -170,10 +170,17 @@ public class EnemyBlock : GameObject
             double randomValue = random.NextDouble();
             if (randomValue <= randomShootProbability * deltaTimeSeconds)
             {
-                Vecteur2d playerCenter = new(
-                    game.PlayerShip.Position.X + game.PlayerShip.Image.Width / 2.0,
-                    game.PlayerShip.Position.Y + game.PlayerShip.Image.Height / 2.0);
-                ship.ShootAt(playerCenter);
+                if (game.SelectedDifficulty == Game.Difficulty.Hard)
+                {
+                    Vecteur2d playerCenter = new(
+                        game.PlayerShip.Position.X + game.PlayerShip.Image.Width / 2.0,
+                        game.PlayerShip.Position.Y + game.PlayerShip.Image.Height / 2.0);
+                    ship.ShootAt(playerCenter);
+                }
+                else
+                {
+                    ship.Shoot(true);
+                }
             }
         }
     }

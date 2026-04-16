@@ -17,6 +17,7 @@ public partial class Form1 : Form
 
         frameTimer.Interval = 16;
         frameTimer.Tick += FrameTimer_Tick;
+        MouseClick += Form1_MouseClick;
         frameTimer.Start();
     }
 
@@ -33,6 +34,12 @@ public partial class Form1 : Form
         lastFrameUtc = now;
 
         game.Update(deltaTimeSeconds);
+        Invalidate();
+    }
+
+    private void Form1_MouseClick(object? sender, MouseEventArgs e)
+    {
+        game.HandleMouseClick(e.Location);
         Invalidate();
     }
 

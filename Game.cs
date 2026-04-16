@@ -11,10 +11,17 @@ public class Game
     private const string BackgroundMusicAlias = "bgm_track";
     public enum GameState
     {
+        Menu,
         Play,
         Pause,
         Win,
         Lost
+    }
+
+    public enum Difficulty
+    {
+        Easy,
+        Hard
     }
     private readonly List<GameObject> objects = new();
     private readonly List<GameObject> pendingObjects = new();
@@ -24,21 +31,22 @@ public class Game
     private readonly Size gameSize;
     private int score;
     private bool isUpdating;
-    private GameState state = GameState.Play;
+    private GameState state = GameState.Menu;
     private bool pKeyWasDown;
     private bool spaceKeyWasDown;
-
+    private Difficulty selectedDifficulty = Difficulty.Easy;
     public IReadOnlyList<GameObject> Objects => objects;
 
     public PlayerSpaceship PlayerShip => playerShip;
     public Size GameSize => gameSize;
     public int Score => score;
 
+    public Difficulty SelectedDifficulty => selectedDifficulty;
+
     public Game(Size clientSize)
     {
         gameSize = clientSize;
         StartBackgroundMusic();
-        InitializeGame();
     }
 
     public void AddObject(GameObject gameObject)
@@ -57,6 +65,27 @@ public class Game
     public void AddEnemyKillScore()
     {
         score += 100;
+    }
+
+     public void HandleMouseClick(Point location)
+    {
+        if (state != GameState.Menu)
+        {
+            return;
+        }
+
+        GetDifficultyButtonBounds(out Rectangle easyButton, out Rectangle hardButton);
+
+        if (easyButton.Contains(location))
+        {
+            selectedDifficulty = Difficulty.Easy;
+            InitializeGame();
+        }
+        else if (hardButton.Contains(location))
+        {
+            selectedDifficulty = Difficulty.Hard;
+            InitializeGame();
+        }
     }
 
     private void AddBunkers()
@@ -78,6 +107,12 @@ public class Game
     }
      public void Update(double deltaTimeSeconds)
     {
+
+        if (state == GameState.Menu)
+        {
+            return;
+        }
+
         if (state == GameState.Win || state == GameState.Lost)
         {
             if (KeyPressed(Keys.Space, ref spaceKeyWasDown))
@@ -142,6 +177,12 @@ public class Game
 
         graphics.Clear(Color.Black);
 
+        if (state == GameState.Menu)
+        {
+            DrawMenu(graphics);
+            return;
+        }
+
         foreach (GameObject gameObject in objects)
         {
             if (gameObject.IsAlive())
@@ -174,6 +215,46 @@ public class Game
         }
 
          graphics.DrawString(message, SystemFonts.DefaultFont, Brushes.White, 10f, 10f);
+    }
+
+private void DrawMenu(Graphics graphics)
+    {
+        using Font titleFont = new(FontFamily.GenericSansSerif, 28, FontStyle.Bold, GraphicsUnit.Point);
+        using Font buttonFont = new(FontFamily.GenericSansSerif, 18, FontStyle.Bold, GraphicsUnit.Point);
+        using StringFormat centered = new()
+        {
+            Alignment = StringAlignment.Center,
+            LineAlignment = StringAlignment.Center
+        };
+
+        RectangleF titleBounds = new(0, 60, gameSize.Width, 80);
+        graphics.DrawString("Space Invaders", titleFont, Brushes.Lime, titleBounds, centered);
+
+        GetDifficultyButtonBounds(out Rectangle easyButton, out Rectangle hardButton);
+
+        graphics.FillRectangle(Brushes.DarkGreen, easyButton);
+        graphics.DrawRectangle(Pens.Lime, easyButton);
+        graphics.DrawString("Facile", buttonFont, Brushes.White, easyButton, centered);
+
+        graphics.FillRectangle(Brushes.DarkRed, hardButton);
+        graphics.DrawRectangle(Pens.OrangeRed, hardButton);
+        graphics.DrawString("Compliqué", buttonFont, Brushes.White, hardButton, centered);
+
+        RectangleF hintBounds = new(0, hardButton.Bottom + 24, gameSize.Width, 30);
+        graphics.DrawString("Clique sur une difficulté", SystemFonts.DefaultFont, Brushes.White, hintBounds, centered);
+    }
+
+    private void GetDifficultyButtonBounds(out Rectangle easyButton, out Rectangle hardButton)
+    {
+        int buttonWidth = 180;
+        int buttonHeight = 56;
+        int spacing = 24;
+        int totalWidth = buttonWidth * 2 + spacing;
+        int startX = (gameSize.Width - totalWidth) / 2;
+        int y = gameSize.Height / 2 - buttonHeight / 2;
+
+        easyButton = new Rectangle(startX, y, buttonWidth, buttonHeight);
+        hardButton = new Rectangle(startX + buttonWidth + spacing, y, buttonWidth, buttonHeight);
     }
 
     private void InitializeGame()
