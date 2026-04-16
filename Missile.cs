@@ -1,14 +1,8 @@
 namespace SpaceInvader;
 
-public class Missile : GameObject
+public class Missile : SimpleObject
 {
-    public Vecteur2d Position { get; set; }
-
     public double Vitesse { get; set; }
-
-    public int Lives { get; set; }
-
-    public Bitmap Image { get; }
 
     private readonly Size gameSize;
 
@@ -18,13 +12,8 @@ public class Missile : GameObject
     }
 
     public Missile(Vecteur2d position, int lives, Bitmap image, Size gameSize, double vitesse = 400)
+        : base(position, lives, image)
     {
-        ArgumentNullException.ThrowIfNull(position);
-        ArgumentNullException.ThrowIfNull(image);
-
-        Position = position;
-        Lives = lives;
-        Image = image;
         this.gameSize = gameSize;
         Vitesse = vitesse;
     }
@@ -44,15 +33,4 @@ public class Missile : GameObject
         }
     }
 
-    public override void Draw(Graphics graphics)
-    {
-        ArgumentNullException.ThrowIfNull(graphics);
-
-        graphics.DrawImage(Image, (float)Position.X, (float)Position.Y, Image.Width, Image.Height);
-    }
-
-    public override bool IsAlive()
-    {
-        return Lives > 0;
-    }
 }

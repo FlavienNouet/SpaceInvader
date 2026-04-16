@@ -1,6 +1,6 @@
 namespace SpaceInvader;
 
-public class SpaceShip : GameObject
+public class SpaceShip : SimpleObject
 {
     private readonly double playerSpeedPixelPerSecond;
     private readonly Size gameSize;
@@ -8,24 +8,14 @@ public class SpaceShip : GameObject
 
     private Missile? missile;
 
-    public Vecteur2d Position { get; set; }
-
-    public int Lives { get; set; }
-
-    public Bitmap Image { get; }
-
-    public SpaceShip(Game game, Vecteur2d position, int lives, Bitmap image, Size gameSize, double playerSpeedPixelPerSecond = 200)    {
-        ArgumentNullException.ThrowIfNull(position);
+    public SpaceShip(Game game, Vecteur2d position, int lives, Bitmap image, Size gameSize, double playerSpeedPixelPerSecond = 200)
+        : base(position, lives, image)
+    {
         ArgumentNullException.ThrowIfNull(game);
-        ArgumentNullException.ThrowIfNull(image);
 
         this.game = game;
-        Position = position;
-        Lives = lives;
-        Image = image;
         this.gameSize = gameSize;
         this.playerSpeedPixelPerSecond = playerSpeedPixelPerSecond;
-        this.game = game;   
     }
 
     public override void Update(double deltaTimeSeconds)
@@ -63,18 +53,6 @@ public class SpaceShip : GameObject
         missile = new Missile(missilePosition, 1, missileImage, game.GameSize);
         game.AddObject(missile);
     }
-    public override void Draw(Graphics graphics)
-    {
-        ArgumentNullException.ThrowIfNull(graphics);
-
-        graphics.DrawImage(Image, (float)Position.X, (float)Position.Y, Image.Width, Image.Height);
-    }
-
-    public override bool IsAlive()
-    {
-        return Lives > 0;
-    }
-
     private static bool IsKeyDown(Keys key)
     {
         return (GetAsyncKeyState((int)key) & 0x8000) != 0;
