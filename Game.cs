@@ -9,6 +9,8 @@ public class Game
     private static System.Media.SoundPlayer? invaderKilledSound;
     private static bool backgroundMusicStarted;
     private const string BackgroundMusicAlias = "bgm_track";
+    private const int MaxWaves = 5;
+    private const double WaveBannerDurationSeconds = 1.8;
     public enum GameState
     {
         Menu,
@@ -30,6 +32,9 @@ public class Game
 
     private readonly Size gameSize;
     private int score;
+    private int waveNumber = 1;
+    public int WaveNumber => waveNumber;
+    private double waveBannerRemainingSeconds;
     private bool isUpdating;
     private GameState state = GameState.Menu;
     private bool pKeyWasDown;
@@ -150,6 +155,11 @@ public class Game
             return;
         }
 
+        if (waveBannerRemainingSeconds > 0)
+        {
+            waveBannerRemainingSeconds = Math.Max(0, waveBannerRemainingSeconds - deltaTimeSeconds);
+        }
+
         isUpdating = true;
 
         foreach (GameObject gameObject in objects)
@@ -176,7 +186,15 @@ public class Game
         }
         else if (!enemies.IsAlive())
         {
-            state = GameState.Win;
+            if (waveNumber >= MaxWaves)
+            {
+                state = GameState.Win;
+            }
+            else
+            {
+                waveNumber++;
+                StartNextWave();
+            }
         }
 
         objects.RemoveAll(gameObject => !gameObject.IsAlive());
@@ -201,7 +219,7 @@ public class Game
                 gameObject.Draw(graphics);
             }
         }
-        graphics.DrawString($"Score: {score}", SystemFonts.DefaultFont, Brushes.White, 10f, gameSize.Height - 24f);
+        graphics.DrawString($"Score: {score} | Vague: {waveNumber}", SystemFonts.DefaultFont, Brushes.White, 10f, gameSize.Height - 24f);
 
         string message = state switch
         {
@@ -228,6 +246,19 @@ public class Game
             RectangleF hintBounds = new(0, gameSize.Height - 50, gameSize.Width, 30);
             graphics.DrawString(hint, SystemFonts.DefaultFont, Brushes.White, hintBounds, format);
             return;
+        }
+
+         if (waveBannerRemainingSeconds > 0)
+        {
+            using Font waveFont = new(FontFamily.GenericSansSerif, 28, FontStyle.Bold, GraphicsUnit.Point);
+            using StringFormat centered = new()
+            {
+                Alignment = StringAlignment.Center,
+                LineAlignment = StringAlignment.Center
+            };
+
+            RectangleF waveBounds = new(0, gameSize.Height * 0.22f, gameSize.Width, 50);
+            graphics.DrawString($"Vague {waveNumber}", waveFont, Brushes.Lime, waveBounds, centered);
         }
 
          graphics.DrawString(message, SystemFonts.DefaultFont, Brushes.White, 10f, 10f);
@@ -278,6 +309,8 @@ private void DrawMenu(Graphics graphics)
         objects.Clear();
         pendingObjects.Clear();
         score = 0;
+        waveNumber = 1;
+        waveBannerRemainingSeconds = WaveBannerDurationSeconds;
         isUpdating = false;
         pKeyWasDown = false;
         spaceKeyWasDown = false;
@@ -291,12 +324,23 @@ private void DrawMenu(Graphics graphics)
         playerShip = new PlayerSpaceship(this, startPosition, 3, shipImage, gameSize);
         objects.Add(playerShip);
 
-        enemies = CreateEnemyBlock();
-        AddObject(enemies);
+        StartNextWave();
 
         AddBunkers();
     }
 
+private void StartNextWave()
+    {
+        if (enemies is not null)
+        {
+            objects.Remove(enemies);
+            pendingObjects.Remove(enemies);
+        }
+
+        enemies = CreateEnemyBlock();
+        AddObject(enemies);
+        waveBannerRemainingSeconds = WaveBannerDurationSeconds;
+    }
     private void ReturnToMenu()
     {
         objects.Clear();
@@ -306,6 +350,7 @@ private void DrawMenu(Graphics graphics)
         spaceKeyWasDown = false;
         mKeyWasDown = false;
         escapeKeyWasDown = false;
+        waveBannerRemainingSeconds = 0;
         state = GameState.Menu;
     }
 
@@ -319,7 +364,13 @@ private void DrawMenu(Graphics graphics)
 
      private EnemyBlock CreateEnemyBlock()
     {
-        int blockWidth = Math.Max(120, (int)(gameSize.Width * 0.75));
+        int totalEnemies = 5 + (waveNumber - 1) * 5;
+        int backLineCount = (int)Math.Ceiling(totalEnemies / 3.0);
+        int remainingAfterBack = Math.Max(0, totalEnemies - backLineCount);
+        int middleLineCount = (int)Math.Ceiling(remainingAfterBack / 2.0);
+        int frontLineCount = Math.Max(0, remainingAfterBack - middleLineCount);
+
+        int blockWidth = Math.Max(120, (int)(gameSize.Width * 0.9));
         double startX = (gameSize.Width - blockWidth) / 2.0;
 
         EnemyBlock block = new EnemyBlock(new Vecteur2d(startX, 60), blockWidth, gameSize, this);
@@ -332,9 +383,20 @@ private void DrawMenu(Graphics graphics)
         Bitmap frameC2 = ScaleImage(LoadEnemyAnimationFrame("space__0005_C2"), 2.0);
 
         // Add enemy lines with appropriate animation frames
-        block.AddLine(9, 1, frameA1, frameA2);  // Back line: A1 and A2
-        block.AddLine(7, 1, frameB1, frameB2);  // Middle line: B1 and B2
-        block.AddLine(5, 1, frameC1, frameC2);  // Front line: C1 and C2
+        if (backLineCount > 0)
+        {
+            block.AddLine(backLineCount, 1, frameA1, frameA2);
+        }
+
+        if (middleLineCount > 0)
+        {
+            block.AddLine(middleLineCount, 1, frameB1, frameB2);
+        }
+
+        if (frontLineCount > 0)
+        {
+            block.AddLine(frontLineCount, 1, frameC1, frameC2);
+        }
 
         return block;
     }
