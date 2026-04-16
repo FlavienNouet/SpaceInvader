@@ -8,6 +8,7 @@ public class Game
     private static System.Media.SoundPlayer? shootSound;
     private static System.Media.SoundPlayer? invaderKilledSound;
     private static bool backgroundMusicStarted;
+    private static bool isMuted;
     private const string BackgroundMusicAlias = "bgm_track";
     private const int MaxWaves = 5;
     private const double WaveBannerDurationSeconds = 1.8;
@@ -15,6 +16,7 @@ public class Game
     private const int BombScoreThreshold = 700;
     private const int HomingShotScoreThreshold = 1000;
     private const double DoubleShotDurationSeconds = 20;
+    private const double BombModeDurationSeconds = 5;
     private const double HomingShotDurationSeconds = 10;
     public enum GameState
     {
@@ -48,6 +50,7 @@ public class Game
     private GameState state = GameState.Menu;
 
     private double doubleShotRemainingSeconds;
+    private double bombModeRemainingSeconds;
     private double homingShotRemainingSeconds;
     private bool doubleShotUnlocked;
     private bool bombUnlocked;
@@ -60,9 +63,13 @@ public class Game
     public PlayerSpaceship PlayerShip => playerShip;
     public Size GameSize => gameSize;
     public int Score => score;
+    public EnemyBlock Enemies => enemies;
     private bool mKeyWasDown;
     private bool escapeKeyWasDown;
+    private bool vKeyWasDown;
     public Difficulty SelectedDifficulty => selectedDifficulty;
+    public bool IsBombModeActive => bombModeRemainingSeconds > 0;
+    public static bool IsMuted => isMuted;
 
     public Game(Size clientSize)
     {
@@ -128,6 +135,19 @@ public class Game
     }
      public void Update(double deltaTimeSeconds)
     {
+        if (KeyPressed(Keys.V, ref vKeyWasDown))
+        {
+            isMuted = !isMuted;
+
+            if (isMuted)
+            {
+                PauseBackgroundMusic();
+            }
+            else
+            {
+                ResumeBackgroundMusic();
+            }
+        }
 
         if (state == GameState.Menu)
         {
@@ -178,6 +198,11 @@ public class Game
         if (doubleShotRemainingSeconds > 0)
         {
             doubleShotRemainingSeconds = Math.Max(0, doubleShotRemainingSeconds - deltaTimeSeconds);
+        }
+
+        if (bombModeRemainingSeconds > 0)
+        {
+            bombModeRemainingSeconds = Math.Max(0, bombModeRemainingSeconds - deltaTimeSeconds);
         }
 
         if (homingShotRemainingSeconds > 0)
@@ -253,6 +278,12 @@ public class Game
         if (IsDoubleShotActive)
         {
             graphics.DrawString($"Double tir: {Math.Ceiling(doubleShotRemainingSeconds)}s", SystemFonts.DefaultFont, Brushes.LightBlue, bonusX, bonusY);
+            bonusY -= 18f;
+        }
+
+        if (IsBombModeActive)
+        {
+            graphics.DrawString($"Bombe: {Math.Ceiling(bombModeRemainingSeconds)}s", SystemFonts.DefaultFont, Brushes.Orange, bonusX, bonusY);
             bonusY -= 18f;
         }
 
@@ -352,6 +383,7 @@ private void DrawMenu(Graphics graphics)
         waveNumber = 1;
         waveBannerRemainingSeconds = WaveBannerDurationSeconds;
         doubleShotRemainingSeconds = 0;
+        bombModeRemainingSeconds = 0;
         homingShotRemainingSeconds = 0;
         doubleShotUnlocked = false;
         bombUnlocked = false;
@@ -395,8 +427,10 @@ private void StartNextWave()
         spaceKeyWasDown = false;
         mKeyWasDown = false;
         escapeKeyWasDown = false;
+        vKeyWasDown = false;
         waveBannerRemainingSeconds = 0;
         doubleShotRemainingSeconds = 0;
+        bombModeRemainingSeconds = 0;
         homingShotRemainingSeconds = 0;
         doubleShotUnlocked = false;
         bombUnlocked = false;
@@ -415,7 +449,7 @@ private void StartNextWave()
         if (!bombUnlocked && score >= BombScoreThreshold)
         {
             bombUnlocked = true;
-            enemies.DestroyAllEnemiesByBomb();
+            bombModeRemainingSeconds = BombModeDurationSeconds;
         }
 
         if (!homingUnlocked && score >= HomingShotScoreThreshold)
@@ -491,7 +525,7 @@ private void StartNextWave()
 
     internal static void StartBackgroundMusic()
     {
-        if (backgroundMusicStarted)
+        if (backgroundMusicStarted || isMuted)
         {
             return;
         }
@@ -516,6 +550,26 @@ private void StartNextWave()
         {
             backgroundMusicStarted = true;
         }
+    }
+
+    private static void PauseBackgroundMusic()
+    {
+        if (!backgroundMusicStarted)
+        {
+            return;
+        }
+
+        mciSendString($"pause {BackgroundMusicAlias}", null, 0, IntPtr.Zero);
+    }
+
+    private static void ResumeBackgroundMusic()
+    {
+        if (!backgroundMusicStarted)
+        {
+            return;
+        }
+
+        mciSendString($"resume {BackgroundMusicAlias}", null, 0, IntPtr.Zero);
     }
 
     internal static void StopBackgroundMusic()
@@ -621,6 +675,11 @@ private void StartNextWave()
 
     internal static void PlayShootSound()
     {
+        if (isMuted)
+        {
+            return;
+        }
+
         if (shootSound is null)
         {
             string filePath = Path.Combine(AppContext.BaseDirectory, "assets", "Audio", "shoot.wav");
@@ -637,6 +696,11 @@ private void StartNextWave()
 
      internal static void PlayInvaderKilledSound()
     {
+        if (isMuted)
+        {
+            return;
+        }
+
         if (invaderKilledSound is null)
         {
             string filePath = Path.Combine(AppContext.BaseDirectory, "assets", "Audio", "invaderkilled.wav");

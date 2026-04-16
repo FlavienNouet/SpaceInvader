@@ -49,7 +49,7 @@ public class PlayerSpaceship : SpaceShip
             double maxX = Math.Max(0, GameSize.Width - Image.Width);
             Position = new Vecteur2d(Math.Min(maxX, Position.X + moveDistance), Position.Y);
         }
-          if (isMovingHorizontally)
+                if (isMovingHorizontally && !Game.IsMuted)
         {
             StartMovementSound();
         }

@@ -193,6 +193,28 @@ public class EnemyBlock : GameObject
             nearestShip.Position.Y + nearestShip.Image.Height / 2.0);
         return true;
     }
+
+    public void DestroyEnemiesInRadius(Vecteur2d center, double radius)
+    {
+        List<SpaceShip> aliveShips = enemyShips.Where(ship => ship.IsAlive()).ToList();
+
+        foreach (SpaceShip ship in aliveShips)
+        {
+            double shipCenterX = ship.Position.X + ship.Image.Width / 2.0;
+            double shipCenterY = ship.Position.Y + ship.Image.Height / 2.0;
+            double dx = shipCenterX - center.X;
+            double dy = shipCenterY - center.Y;
+            double distance = Math.Sqrt(dx * dx + dy * dy);
+
+            if (distance <= radius)
+            {
+                ship.DestroyByBomb();
+            }
+        }
+
+        UpdateSize();
+    }
+
     private void MoveShips(double deltaX, double deltaY)
     {
         foreach (SpaceShip ship in enemyShips)

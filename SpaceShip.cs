@@ -99,7 +99,13 @@ public class SpaceShip : SimpleObject
             return;
         }
 
-         CleanupMissiles();
+        if (Camp == GameObject.Side.Ally && game.IsBombModeActive && !shootDownwards)
+        {
+            ShootBomb();
+            return;
+        }
+
+        CleanupMissiles();
         if (activeMissiles.Count > 0)
         {
             ShootDouble();
@@ -123,6 +129,18 @@ public class SpaceShip : SimpleObject
         Missile missile = new Missile(Camp, game, missilePosition, 1, missileImage, game.GameSize, 400, 0, verticalDirection, animationFrames, homingEnabled);
         activeMissiles.Add(missile);
         game.AddObject(missile);
+        Game.PlayShootSound();
+    }
+
+    private void ShootBomb()
+    {
+        if (game is null)
+        {
+            return;
+        }
+
+        Bomb bomb = new(game, game.Enemies, new Vecteur2d(Position.X + Image.Width / 2.0, Position.Y - 8), new Bitmap(1, 1));
+        game.AddObject(bomb);
         Game.PlayShootSound();
     }
 
