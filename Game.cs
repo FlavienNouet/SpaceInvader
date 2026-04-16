@@ -3,7 +3,6 @@ namespace SpaceInvader;
 public class Game
 {
      private static readonly Rectangle PlayerShipSourceRect = new(355, 1163, 104, 64);
-    private static readonly Rectangle EnemyShipSourceRect = new(390, 785, 192, 84);
     private static readonly Rectangle BunkerSourceRect = new(402, 965, 176, 128);
     private static readonly Rectangle MissileSourceRect = new(350, 864, 4, 103);
     public enum GameState
@@ -200,11 +199,18 @@ public class Game
         double startX = (gameSize.Width - blockWidth) / 2.0;
 
         EnemyBlock block = new EnemyBlock(new Vecteur2d(startX, 60), blockWidth, gameSize, this);
-        Bitmap enemyImage = CreateEnemyShipImage();
+         // Load animation frames for each enemy line
+        Bitmap frameA1 = LoadEnemyAnimationFrame("space__0000_A1");
+        Bitmap frameA2 = LoadEnemyAnimationFrame("space__0001_A2");
+        Bitmap frameB1 = LoadEnemyAnimationFrame("space__0002_B1");
+        Bitmap frameB2 = LoadEnemyAnimationFrame("space__0003_B2");
+        Bitmap frameC1 = LoadEnemyAnimationFrame("space__0004_C1");
+        Bitmap frameC2 = LoadEnemyAnimationFrame("space__0005_C2");
 
-        block.AddLine(9, 1, enemyImage);
-        block.AddLine(7, 1, enemyImage);
-        block.AddLine(5, 1, enemyImage);
+        // Add enemy lines with appropriate animation frames
+        block.AddLine(9, 1, frameA1, frameA2);  // Back line: A1 and A2
+        block.AddLine(7, 1, frameB1, frameB2);  // Middle line: B1 and B2
+        block.AddLine(5, 1, frameC1, frameC2);  // Front line: C1 and C2
 
         return block;
     }
@@ -216,9 +222,14 @@ public class Game
         return CreateSpriteFromSheet(PlayerShipSourceRect, new Size(48, 48));
     }
 
-    private static Bitmap CreateEnemyShipImage()
+     private static Bitmap LoadEnemyAnimationFrame(string frameName)
     {
-        return CreateSpriteFromSheet(EnemyShipSourceRect, new Size(42, 30));
+        string framePath = Path.Combine(AppContext.BaseDirectory, "assets", "Sprites", "Invaders", $"{frameName}.png");
+        if (!File.Exists(framePath))
+        {
+            throw new FileNotFoundException($"Sprite file not found: {framePath}");
+        }
+        return new Bitmap(Image.FromFile(framePath));
     }
 
         internal static Bitmap CreateBunkerImage()

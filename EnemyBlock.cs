@@ -37,7 +37,7 @@ public class EnemyBlock : GameObject
         Size = Size.Empty;
     }
 
-    public void AddLine(int nbShips, int nbLives, Bitmap shipImage)
+    public void AddLine(int nbShips, int nbLives, Bitmap shipImage, Bitmap? alternateImage = null)
     {
         ArgumentNullException.ThrowIfNull(shipImage);
 
@@ -53,7 +53,7 @@ public class EnemyBlock : GameObject
         for (int i = 0; i < nbShips; i++)
         {
             double shipX = Position.X + i * horizontalStep;
-            SpaceShip enemy = new SpaceShip(game, new Vecteur2d(shipX, lineY), nbLives, (Bitmap)shipImage.Clone(), gameSize);
+            SpaceShip enemy = new SpaceShip(game, new Vecteur2d(shipX, lineY), nbLives, (Bitmap)shipImage.Clone(), gameSize, 200, alternateImage);
             enemyShips.Add(enemy);
         }
 
@@ -87,6 +87,14 @@ public class EnemyBlock : GameObject
          if (!IsAlive())
         {
             return;
+        }
+
+        foreach (SpaceShip ship in enemyShips)
+        {
+            if (ship.IsAlive())
+            {
+                ship.Update(deltaTimeSeconds);
+            }
         }
 
         TryShoot(deltaTimeSeconds);

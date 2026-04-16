@@ -7,6 +7,10 @@ public class SpaceShip : SimpleObject
     private readonly Game? game;
 
     private Missile? missile;
+    private Bitmap? alternateImage;
+    private double animationTimer;
+    private const double AnimationFrameTime = 0.5; // Switch frame every 0.5 seconds
+    private bool useAlternateFrame;
 
     public SpaceShip(Vecteur2d position, int lives, Bitmap image)
         : this(GameObject.Side.Enemy, null, position, lives, image, Size.Empty)
@@ -18,24 +22,42 @@ public class SpaceShip : SimpleObject
     {
     }
 
-    public SpaceShip(Game? game, Vecteur2d position, int lives, Bitmap image, Size gameSize, double playerSpeedPixelPerSecond = 200)
-        : this(GameObject.Side.Enemy, game, position, lives, image, gameSize, playerSpeedPixelPerSecond)
+    public SpaceShip(Game? game, Vecteur2d position, int lives, Bitmap image, Size gameSize, double playerSpeedPixelPerSecond = 200, Bitmap? alternateImage = null)
+        : this(GameObject.Side.Enemy, game, position, lives, image, gameSize, playerSpeedPixelPerSecond, alternateImage)
     {
     }
 
-    protected SpaceShip(GameObject.Side camp, Game? game, Vecteur2d position, int lives, Bitmap image, Size gameSize, double playerSpeedPixelPerSecond = 200)
+    protected SpaceShip(GameObject.Side camp, Game? game, Vecteur2d position, int lives, Bitmap image, Size gameSize, double playerSpeedPixelPerSecond = 200, Bitmap? alternateImage = null)
         : base(camp, position, lives, image)
     {
         this.game = game;
 
         GameSize = gameSize;
         PlayerSpeedPixelPerSecond = playerSpeedPixelPerSecond;
+        this.alternateImage = alternateImage;
+        animationTimer = 0;
+        useAlternateFrame = false;
     }
     
 
     public override void Update(double deltaTimeSeconds)
     {
-    
+     if (alternateImage is not null)
+        {
+            animationTimer += deltaTimeSeconds;
+            if (animationTimer >= AnimationFrameTime)
+            {
+                animationTimer -= AnimationFrameTime;
+                useAlternateFrame = !useAlternateFrame;
+            }
+        }
+    }
+
+    public override void Draw(Graphics graphics)
+    {
+        ArgumentNullException.ThrowIfNull(graphics);
+        Bitmap imageToUse = useAlternateFrame && alternateImage is not null ? alternateImage : Image;
+        graphics.DrawImage(imageToUse, new RectangleF((float)Position.X, (float)Position.Y, imageToUse.Width, imageToUse.Height));
     }
 
     protected override void OnCollision(Missile missile, int numberOfPixelsInCollision)
