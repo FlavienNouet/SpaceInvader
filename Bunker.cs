@@ -8,7 +8,7 @@ public class Bunker : SimpleObject
     private static readonly Color BunkerColor = Color.FromArgb(255, 0, 0, 0);
 
     public Bunker(Vecteur2d position)
-        : base(position, 3, CreateBunkerImage())
+        : base(GameObject.Side.Neutral, position, 3, CreateBunkerImage())
     {
     }
 

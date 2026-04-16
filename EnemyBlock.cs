@@ -22,6 +22,7 @@ public class EnemyBlock : GameObject
     }
 
     public EnemyBlock(Vecteur2d position, int baseWidth, Size gameSize)
+    : base(GameObject.Side.Enemy)
     {
     
         ArgumentNullException.ThrowIfNull(position);

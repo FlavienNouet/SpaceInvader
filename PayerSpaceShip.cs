@@ -3,7 +3,7 @@ namespace SpaceInvader;
 public class PlayerSpaceship : SpaceShip
 {
     public PlayerSpaceship(Game game, Vecteur2d position, int lives, Bitmap image, Size gameSize, double playerSpeedPixelPerSecond = 200)
-        : base(game, position, lives, image, gameSize, playerSpeedPixelPerSecond)
+        : base(GameObject.Side.Ally, game, position, lives, image, gameSize, playerSpeedPixelPerSecond)
     {
     }
 

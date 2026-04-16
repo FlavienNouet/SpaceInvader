@@ -8,12 +8,17 @@ public class Missile : SimpleObject
     private readonly Game? game;
 
     public Missile(Vecteur2d position, int lives, Bitmap image)
-        : this(null, position, lives, image, SystemInformation.VirtualScreen.Size)
+        : this(GameObject.Side.Ally, null, position, lives, image, SystemInformation.VirtualScreen.Size)
     {
     }
 
     public Missile(Game? game, Vecteur2d position, int lives, Bitmap image, Size gameSize, double vitesse = 400)
-        : base(position, lives, image)
+        : this(GameObject.Side.Ally, game, position, lives, image, gameSize, vitesse)
+    {
+    }
+
+    public Missile(GameObject.Side camp, Game? game, Vecteur2d position, int lives, Bitmap image, Size gameSize, double vitesse = 400)
+        : base(camp, position, lives, image)
     {
         this.game = game;
         this.gameSize = gameSize;

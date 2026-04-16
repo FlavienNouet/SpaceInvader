@@ -9,17 +9,22 @@ public class SpaceShip : SimpleObject
     private Missile? missile;
 
     public SpaceShip(Vecteur2d position, int lives, Bitmap image)
-        : this(null, position, lives, image, Size.Empty)
+        : this(GameObject.Side.Enemy, null, position, lives, image, Size.Empty)
     {
         }
 
     public SpaceShip(Vecteur2d position, int lives, Bitmap image, Size gameSize, double playerSpeedPixelPerSecond = 200)
-        : this(null, position, lives, image, gameSize, playerSpeedPixelPerSecond)
+        : this(GameObject.Side.Enemy, null, position, lives, image, gameSize, playerSpeedPixelPerSecond)
     {
     }
 
     public SpaceShip(Game? game, Vecteur2d position, int lives, Bitmap image, Size gameSize, double playerSpeedPixelPerSecond = 200)
-        : base(position, lives, image)
+        : this(GameObject.Side.Enemy, game, position, lives, image, gameSize, playerSpeedPixelPerSecond)
+    {
+    }
+
+    protected SpaceShip(GameObject.Side camp, Game? game, Vecteur2d position, int lives, Bitmap image, Size gameSize, double playerSpeedPixelPerSecond = 200)
+        : base(camp, position, lives, image)
     {
         this.game = game;
 

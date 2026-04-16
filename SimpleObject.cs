@@ -8,7 +8,8 @@ public abstract class SimpleObject : GameObject
 
     public Bitmap Image { get; }
 
-    protected SimpleObject(Vecteur2d position, int lives, Bitmap image)
+    protected SimpleObject(Side camp, Vecteur2d position, int lives, Bitmap image)
+        : base(camp)
     {
         ArgumentNullException.ThrowIfNull(position);
         ArgumentNullException.ThrowIfNull(image);
@@ -33,7 +34,7 @@ public abstract class SimpleObject : GameObject
     {
         ArgumentNullException.ThrowIfNull(missile);
 
-        if (!IsAlive() || !missile.IsAlive() || ReferenceEquals(this, missile))
+        if (!IsAlive() || !missile.IsAlive() || Camp == missile.Camp || ReferenceEquals(this, missile))
         {
             return;
         }
