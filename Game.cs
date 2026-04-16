@@ -40,7 +40,8 @@ public class Game
     public PlayerSpaceship PlayerShip => playerShip;
     public Size GameSize => gameSize;
     public int Score => score;
-
+    private bool mKeyWasDown;
+    private bool escapeKeyWasDown;
     public Difficulty SelectedDifficulty => selectedDifficulty;
 
     public Game(Size clientSize)
@@ -115,6 +116,11 @@ public class Game
 
         if (state == GameState.Win || state == GameState.Lost)
         {
+            if (KeyPressed(Keys.M, ref mKeyWasDown) || KeyPressed(Keys.Escape, ref escapeKeyWasDown))
+            {
+                ReturnToMenu();
+                return;
+            }
             if (KeyPressed(Keys.Space, ref spaceKeyWasDown))
             {
                 InitializeGame();
@@ -125,6 +131,11 @@ public class Game
 
         if (state == GameState.Pause)
         {
+            if (KeyPressed(Keys.M, ref mKeyWasDown) || KeyPressed(Keys.Escape, ref escapeKeyWasDown))
+            {
+                ReturnToMenu();
+                return;
+            }
             if (KeyPressed(Keys.P, ref pKeyWasDown))
             {
                 state = GameState.Play;
@@ -211,6 +222,11 @@ public class Game
 
             RectangleF bounds = new(0, 0, gameSize.Width, gameSize.Height);
             graphics.DrawString(message, font, Brushes.Lime, bounds, format);
+            string hint = state == GameState.Pause
+                ? "P: reprendre | M/Echap: accueil"
+                : "Espace: rejouer | M/Echap: accueil";
+            RectangleF hintBounds = new(0, gameSize.Height - 50, gameSize.Width, 30);
+            graphics.DrawString(hint, SystemFonts.DefaultFont, Brushes.White, hintBounds, format);
             return;
         }
 
@@ -238,7 +254,7 @@ private void DrawMenu(Graphics graphics)
 
         graphics.FillRectangle(Brushes.DarkRed, hardButton);
         graphics.DrawRectangle(Pens.OrangeRed, hardButton);
-        graphics.DrawString("Compliqué", buttonFont, Brushes.White, hardButton, centered);
+        graphics.DrawString("Difficile", buttonFont, Brushes.White, hardButton, centered);
 
         RectangleF hintBounds = new(0, hardButton.Bottom + 24, gameSize.Width, 30);
         graphics.DrawString("Clique sur une difficulté", SystemFonts.DefaultFont, Brushes.White, hintBounds, centered);
@@ -279,6 +295,18 @@ private void DrawMenu(Graphics graphics)
         AddObject(enemies);
 
         AddBunkers();
+    }
+
+    private void ReturnToMenu()
+    {
+        objects.Clear();
+        pendingObjects.Clear();
+        isUpdating = false;
+        pKeyWasDown = false;
+        spaceKeyWasDown = false;
+        mKeyWasDown = false;
+        escapeKeyWasDown = false;
+        state = GameState.Menu;
     }
 
      private static bool KeyPressed(Keys key, ref bool wasDown)
