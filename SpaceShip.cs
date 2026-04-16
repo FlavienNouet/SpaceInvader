@@ -21,6 +21,7 @@ public class SpaceShip : SimpleObject
     public SpaceShip(Game? game, Vecteur2d position, int lives, Bitmap image, Size gameSize, double playerSpeedPixelPerSecond = 200)
         : base(position, lives, image)
     {
+        this.game = game;
 
         GameSize = gameSize;
         PlayerSpeedPixelPerSecond = playerSpeedPixelPerSecond;
@@ -30,6 +31,13 @@ public class SpaceShip : SimpleObject
     public override void Update(double deltaTimeSeconds)
     {
     
+    }
+
+    protected override void OnCollision(Missile missile, int numberOfPixelsInCollision)
+    {
+        int damage = Math.Min(Lives, missile.Lives);
+        Lives = Math.Max(0, Lives - damage);
+        missile.Lives = Math.Max(0, missile.Lives - damage);
     }
 
  public void Shoot()

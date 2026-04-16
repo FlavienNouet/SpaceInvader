@@ -46,5 +46,10 @@ public class Missile : SimpleObject
             }
         }
     }
+     protected override void OnCollision(Missile missile, int numberOfPixelsInCollision)
+    {
+        Lives = 0;
+        missile.Lives = 0;
+    }
 
 }
