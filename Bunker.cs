@@ -1,7 +1,10 @@
 namespace SpaceInvader;
-
+/// <summary>
+///  Cette classe représente un bunker dans notre jeu => bouclier x3 pour les joueurs
+/// </summary>
 public class Bunker : SimpleObject
 {
+    // Rayon de detruction en pixels autour du point d'impact
     private const int ImpactRadiusPixels = 10;
     private readonly Game? game;
 
@@ -16,20 +19,23 @@ public class Bunker : SimpleObject
         this.game = game;
     }
 
+    // Mise en place des Collisions pour les bunkers 
     protected override void OnCollision(Missile missile, int numberOfPixelsInCollision)
     {
-        // Collision handling is implemented in Collision for this class.
     }
 
+    // Collision entre Missile et bBunker
     public override void Collision(Missile missile)
     {
         ArgumentNullException.ThrowIfNull(missile);
 
+        // Vérification de départ => en vie, même camp, même objet
         if (!IsAlive() || !missile.IsAlive() || Camp == missile.Camp || ReferenceEquals(this, missile))
         {
             return;
         }
 
+        // Mise en place de Bounding Box => Missile + Bunker
         Rectangle bunkerRectangle = new((int)Math.Floor(Position.X), (int)Math.Floor(Position.Y), Image.Width, Image.Height);
         Rectangle missileRectangle = new((int)Math.Floor(missile.Position.X), (int)Math.Floor(missile.Position.Y), missile.Image.Width, missile.Image.Height);
 
@@ -38,6 +44,7 @@ public class Bunker : SimpleObject
             return;
         }
 
+        // Vérification pixel par pixel pour trouver le point d'impact
         bool hasCollision = false;
         int impactScreenX = 0;
         int impactScreenY = 0;
@@ -48,11 +55,13 @@ public class Bunker : SimpleObject
             {
                 Color missilePixel = missile.Image.GetPixel(missileLocalX, missileLocalY);
 
+                // Si le pixel du missile est transparent, on continue
                 if (missilePixel.A == 0)
                 {
                     continue;
                 }
 
+                // Conversion des données locales en données écrans pour trouver le pixel correspondant dans le bunker
                 int screenX = missileRectangle.Left + missileLocalX;
                 int screenY = missileRectangle.Top + missileLocalY;
                 int bunkerLocalX = screenX - bunkerRectangle.Left;
@@ -70,6 +79,7 @@ public class Bunker : SimpleObject
                     continue;
                 }
 
+                // On creuse le bunker au lieu d'impacter le missile => destruction de tous les pixels dans un rayon autour du point d'impact
                 DestroyPixelsInRadius(bunkerLocalX, bunkerLocalY, ImpactRadiusPixels);
                 impactScreenX = screenX;
                 impactScreenY = screenY;
@@ -78,10 +88,12 @@ public class Bunker : SimpleObject
             }
         }
 
+        // Conséquence de la collision => perte de vie du missile + explosion à l'écran
         if (hasCollision)
         {
             missile.Lives = Math.Max(0, missile.Lives - 1);
 
+            // Explosion visuelle
             if (game is not null)
             {
                 Bitmap impactImage = Game.CreateImpactExplosionImage();
@@ -94,6 +106,7 @@ public class Bunker : SimpleObject
         }
     }
 
+    // Méthode pour détruire les pixels du bunker dans un rayon autour du point d'impact
     private void DestroyPixelsInRadius(int centerX, int centerY, int radius)
     {
         int radiusSquared = radius * radius;
@@ -119,6 +132,7 @@ public class Bunker : SimpleObject
         }
     }
 
+// Les bunkers ne bougent pas => pas de mise à jour nécessaire
     public override void Update(double deltaTimeSeconds)
     {
     }
