@@ -31,6 +31,7 @@ public class Game
 
         playerShip = new SpaceShip(this, startPosition, 3, shipImage, gameSize);
         objects.Add(playerShip);
+        AddBunkers();
     }
 
     public void AddObject(GameObject gameObject)
@@ -46,6 +47,23 @@ public class Game
         objects.Add(gameObject);
     }
 
+    private void AddBunkers()
+    {
+        const int bunkerWidth = 60;
+        const int bunkerHeight = 40;
+        const int playerGap = 40;
+        const int count = 3;
+
+        double y = Math.Max(0, playerShip.Position.Y - bunkerHeight - playerGap);
+        double availableWidth = Math.Max(0, gameSize.Width - (count * bunkerWidth));
+        double gap = availableWidth / (count + 1);
+
+        for (int i = 0; i < count; i++)
+        {
+            double x = gap * (i + 1) + bunkerWidth * i;
+            AddObject(new Bunker(new Vecteur2d(x, y)));
+        }
+    }
      public void Update(double deltaTimeSeconds)
     {
         if (ReleaseKey(Keys.P))
