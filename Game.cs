@@ -89,6 +89,8 @@ public class Game
             objects.AddRange(pendingObjects);
             pendingObjects.Clear();
         }
+
+        objects.RemoveAll(gameObject => !gameObject.IsAlive());
     }
 
     public void Draw(Graphics graphics)
@@ -97,7 +99,10 @@ public class Game
 
         foreach (GameObject gameObject in objects)
         {
-            gameObject.Draw(graphics);
+            if (gameObject.IsAlive())
+            {
+                gameObject.Draw(graphics);
+            }
         }
         string message = state == GameState.Pause ? "Pause" : "Jeu en cours";
 

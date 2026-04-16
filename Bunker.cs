@@ -29,9 +29,9 @@ public override void Collision(Missile missile)
             return;
         }
 
-        int collisionPixelCount = 0;
+        bool hasCollision = false;
 
-        for (int missileLocalY = 0; missileLocalY < missile.Image.Height; missileLocalY++)
+        for (int missileLocalY = 0; missileLocalY < missile.Image.Height && !hasCollision; missileLocalY++)
         {
             for (int missileLocalX = 0; missileLocalX < missile.Image.Width; missileLocalX++)
             {
@@ -60,13 +60,14 @@ public override void Collision(Missile missile)
                 }
 
                 Image.SetPixel(bunkerLocalX, bunkerLocalY, Color.Transparent);
-                collisionPixelCount++;
+                hasCollision = true;
+                break;
             }
         }
 
-        if (collisionPixelCount > 0)
+        if (hasCollision)
         {
-            missile.Lives = Math.Max(0, missile.Lives - collisionPixelCount);
+            missile.Lives = Math.Max(0, missile.Lives - 1);
         }
     }
     public override void Update(double deltaTimeSeconds)

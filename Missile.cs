@@ -5,7 +5,7 @@ public class Missile : SimpleObject
     public double Vitesse { get; set; }
 
     private readonly Size gameSize;
-    private readonly Game game;
+    private readonly Game? game;
 
     public Missile(Vecteur2d position, int lives, Bitmap image)
         : this(null, position, lives, image, SystemInformation.VirtualScreen.Size)
@@ -15,7 +15,8 @@ public class Missile : SimpleObject
     public Missile(Game? game, Vecteur2d position, int lives, Bitmap image, Size gameSize, double vitesse = 400)
         : base(position, lives, image)
     {
-        this.game = game!;
+        this.game = game;
+        this.gameSize = gameSize;
         Vitesse = vitesse;
     }
 
@@ -36,6 +37,11 @@ public class Missile : SimpleObject
         {
             foreach (GameObject gameObject in game.Objects)
             {
+                if (ReferenceEquals(gameObject, this) || !IsAlive())
+                {
+                    continue;
+                }
+
                 gameObject.Collision(this);
             }
         }
