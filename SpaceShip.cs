@@ -85,14 +85,15 @@ public class SpaceShip : SimpleObject
             return;
         }
 
-        Bitmap missileImage = CreateMissileImage();
+        Bitmap[] animationFrames = Game.CreateMissileAnimationFrames();
+        Bitmap missileImage = animationFrames[0];
         Vecteur2d missilePosition = new(
             Position.X + (Image.Width - missileImage.Width) / 2.0,
             shootDownwards ? Position.Y + Image.Height : Position.Y - missileImage.Height);
 
         double verticalDirection = shootDownwards ? 1 : -1;
 
-        missile = new Missile(Camp, game, missilePosition, 1, missileImage, game.GameSize, 400, verticalDirection);
+        missile = new Missile(Camp, game, missilePosition, 1, missileImage, game.GameSize, 400, verticalDirection, animationFrames);
         game.AddObject(missile);
     }
     protected static bool IsKeyDown(Keys key)

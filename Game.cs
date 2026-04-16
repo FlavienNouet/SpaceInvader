@@ -200,12 +200,12 @@ public class Game
 
         EnemyBlock block = new EnemyBlock(new Vecteur2d(startX, 60), blockWidth, gameSize, this);
          // Load animation frames for each enemy line
-        Bitmap frameA1 = LoadEnemyAnimationFrame("space__0000_A1");
-        Bitmap frameA2 = LoadEnemyAnimationFrame("space__0001_A2");
-        Bitmap frameB1 = LoadEnemyAnimationFrame("space__0002_B1");
-        Bitmap frameB2 = LoadEnemyAnimationFrame("space__0003_B2");
-        Bitmap frameC1 = LoadEnemyAnimationFrame("space__0004_C1");
-        Bitmap frameC2 = LoadEnemyAnimationFrame("space__0005_C2");
+        Bitmap frameA1 = ScaleImage(LoadEnemyAnimationFrame("space__0000_A1"), 2.0);
+        Bitmap frameA2 = ScaleImage(LoadEnemyAnimationFrame("space__0001_A2"), 2.0);
+        Bitmap frameB1 = ScaleImage(LoadEnemyAnimationFrame("space__0002_B1"), 2.0);
+        Bitmap frameB2 = ScaleImage(LoadEnemyAnimationFrame("space__0003_B2"), 2.0);
+        Bitmap frameC1 = ScaleImage(LoadEnemyAnimationFrame("space__0004_C1"), 2.0);
+        Bitmap frameC2 = ScaleImage(LoadEnemyAnimationFrame("space__0005_C2"), 2.0);
 
         // Add enemy lines with appropriate animation frames
         block.AddLine(9, 1, frameA1, frameA2);  // Back line: A1 and A2
@@ -224,7 +224,8 @@ public class Game
         {
             throw new FileNotFoundException($"Sprite file not found: {filePath}");
         }
-        return new Bitmap(Image.FromFile(filePath));
+        Bitmap original = new Bitmap(Image.FromFile(filePath));
+        return ScaleImage(original, 1.5); // Scale player to 1.5x
     }
 
      private static Bitmap LoadEnemyAnimationFrame(string frameName)
@@ -237,6 +238,23 @@ public class Game
         return new Bitmap(Image.FromFile(framePath));
     }
 
+    private static Bitmap ScaleImage(Bitmap originalImage, double scaleFactor)
+    {
+        ArgumentNullException.ThrowIfNull(originalImage);
+
+        int newWidth = (int)(originalImage.Width * scaleFactor);
+        int newHeight = (int)(originalImage.Height * scaleFactor);
+
+        Bitmap scaledBitmap = new(newWidth, newHeight);
+
+        using Graphics graphics = Graphics.FromImage(scaledBitmap);
+        graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+        graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
+        graphics.DrawImage(originalImage, new Rectangle(0, 0, newWidth, newHeight));
+
+        return scaledBitmap;
+    }
+
         internal static Bitmap CreateBunkerImage()
     {
         string filePath = Path.Combine(AppContext.BaseDirectory, "assets", "Sprites", "Invaders", "space__0008_ShieldFull.png");
@@ -244,7 +262,8 @@ public class Game
         {
             throw new FileNotFoundException($"Sprite file not found: {filePath}");
         }
-        return new Bitmap(Image.FromFile(filePath));
+        Bitmap original = new Bitmap(Image.FromFile(filePath));
+        return ScaleImage(original, 1.2); // Scale bunker to 1.2x
     }
 
     internal static Bitmap CreateEnemyExplosionImage()
@@ -254,12 +273,38 @@ public class Game
         {
             throw new FileNotFoundException($"Sprite file not found: {filePath}");
         }
-        return new Bitmap(Image.FromFile(filePath));
+        Bitmap original = new Bitmap(Image.FromFile(filePath));
+        return ScaleImage(original, 2.0); // Scale explosion to 2x for visibility
     }
 
         internal static Bitmap CreateMissileImage()
     {
-        return CreateSpriteFromSheet(MissileSourceRect, new Size(6, 16));
+        string filePath = Path.Combine(AppContext.BaseDirectory, "assets", "Sprites", "Projectiles", "ProjectileA_1.png");
+        if (!File.Exists(filePath))
+        {
+            throw new FileNotFoundException($"Sprite file not found: {filePath}");
+        }
+        Bitmap original = new Bitmap(Image.FromFile(filePath));
+        return ScaleImage(original, 1.5); // Scale missile to 1.5x
+    }
+
+    internal static Bitmap[] CreateMissileAnimationFrames()
+    {
+        string[] frameNames = { "ProjectileA__2.png", "ProjectileA_3.png", "ProjectileA_4.png" };
+        Bitmap[] frames = new Bitmap[frameNames.Length];
+
+        for (int i = 0; i < frameNames.Length; i++)
+        {
+            string filePath = Path.Combine(AppContext.BaseDirectory, "assets", "Sprites", "Projectiles", frameNames[i]);
+            if (!File.Exists(filePath))
+            {
+                throw new FileNotFoundException($"Sprite file not found: {filePath}");
+            }
+            Bitmap original = new Bitmap(Image.FromFile(filePath));
+            frames[i] = ScaleImage(original, 1.5);
+        }
+
+        return frames;
     }
 
         private static Bitmap CreateSpriteFromSheet(Rectangle sourceRectangle, Size targetSize)
