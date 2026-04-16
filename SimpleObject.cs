@@ -1,5 +1,7 @@
 namespace SpaceInvader;
-
+/// <summary>
+/// Représente un objet simple dans le jeu, comme un missile ou un vaisseau. Il possède une position, des vies, une image pour l'affichage et une logique de collision basée sur les pixels. Les classes dérivées doivent implémenter la méthode OnCollision pour définir le comportement spécifique lors d'une collision avec un missile.
+/// </summary>
 public abstract class SimpleObject : GameObject
 {
     public Vecteur2d Position { get; set; }
@@ -25,11 +27,13 @@ public abstract class SimpleObject : GameObject
         graphics.DrawImage(Image, (float)Position.X, (float)Position.Y, Image.Width, Image.Height);
     }
 
+    // Objet considéré comme vivant tant qu'il a au moins une vie restante
     public override bool IsAlive()
     {
         return Lives > 0;
     }
 
+    // Collision basée sur les pixels entre ce SimpleObject et un missile
     public override void Collision(Missile missile)
     {
         ArgumentNullException.ThrowIfNull(missile);
@@ -39,6 +43,7 @@ public abstract class SimpleObject : GameObject
             return;
         }
 
+        // Calculer les rectangles englobants de l'objet et du missile pour une vérification rapide de l'intersection
         Rectangle objectRectangle = GetObjectRectangle(Position, Image.Width, Image.Height);
         Rectangle missileRectangle = GetObjectRectangle(missile.Position, missile.Image.Width, missile.Image.Height);
 
@@ -49,6 +54,7 @@ public abstract class SimpleObject : GameObject
 
         int numberOfPixelsInCollision = 0;
 
+        // Boucle de collision pixel par pixel entre le missile et l'objet
         for (int missileLocalY = 0; missileLocalY < missile.Image.Height; missileLocalY++)
         {
             for (int missileLocalX = 0; missileLocalX < missile.Image.Width; missileLocalX++)

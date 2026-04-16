@@ -1,5 +1,7 @@
 namespace SpaceInvader;
-
+/// <summary>
+/// Mise en place du bloc d'ennemis => gestion de plusieurs vaisseaux ennemis en même temps, déplacement en bloc, tir aléatoire, etc.
+/// </summary>
 public class EnemyBlock : GameObject
 {
     private readonly HashSet<SpaceShip> enemyShips = new();
@@ -7,11 +9,14 @@ public class EnemyBlock : GameObject
     private readonly Size gameSize;
     private readonly Game? game;
     private readonly Random random = new();
+
+    // Probabilité de tir aléatoire par seconde pour chaque vaisseau ennemi
     private double randomShootProbability = 0.05;
     private int lineCount;
     private int horizontalDirection = 1;
     private double horizontalSpeedPixelPerSecond = 30;
 
+    // Constantes pour le déplacement du bloc d'ennemis
     private const double DownStepPixels = 20;
     private const double HorizontalSpeedIncrease = 8;
 
@@ -37,6 +42,7 @@ public class EnemyBlock : GameObject
         Size = Size.Empty;
     }
 
+    // Ajout d'une ligne de vaisseaux ennemis au bloc
     public void AddLine(int nbShips, int nbLives, Bitmap shipImage, Bitmap? alternateImage = null)
     {
         ArgumentNullException.ThrowIfNull(shipImage);
@@ -47,6 +53,8 @@ public class EnemyBlock : GameObject
         }
 
         double lineY = Position.Y + lineCount * (shipImage.Height + 10);
+
+        // Calcul de l'espacement horizontal entre les vaisseaux pour les centrer dans la largeur du bloc
         const double preferredGap = 26;
         double preferredStep = shipImage.Width + preferredGap;
         double maxStepToFitBlock = nbShips > 1
@@ -70,6 +78,7 @@ public class EnemyBlock : GameObject
         UpdateSize();
     }
 
+    // Mise à jour de la taille du bloc d'ennemis en fonction des vaisseaux encore en vie
     public void UpdateSize()
     {
         List<SpaceShip> aliveShips = enemyShips.Where(ship => ship.IsAlive()).ToList();
@@ -91,6 +100,7 @@ public class EnemyBlock : GameObject
             (int)Math.Ceiling(maxY - minY));
     }
 
+    // Mise a jour de smouvements ennemis + rebonds sur les bords de l'écran + tir aléatoire
     public override void Update(double deltaTimeSeconds)
     {
          if (!IsAlive())
@@ -112,12 +122,13 @@ public class EnemyBlock : GameObject
         bool hitLeftBorder = Position.X + horizontalDelta < 0;
         bool hitRightBorder = Position.X + Size.Width + horizontalDelta > gameSize.Width;
 
+        // Gestion des rebnds sur les bords de l'écran => changement de direction + accélération + descente du bloc d'ennemis
         if (hitLeftBorder || hitRightBorder)
         {
-            horizontalDirection *= -1;
+            horizontalDirection *= -1; // Change la direction horizontale
             horizontalSpeedPixelPerSecond += HorizontalSpeedIncrease;
-            MoveShips(0, DownStepPixels);
-            randomShootProbability += 0.02;
+            MoveShips(0, DownStepPixels); // Descend d'un cran 
+            randomShootProbability += 0.02; // Devient plus actif
             UpdateSize();
             return;
         }
@@ -185,7 +196,7 @@ public class EnemyBlock : GameObject
         return true;
     }
 
-
+    // Méthode pour déplacer tous les vaisseaux ennemis du bloc d'un certain deltaX et deltaY
     private void MoveShips(double deltaX, double deltaY)
     {
         foreach (SpaceShip ship in enemyShips)
@@ -193,6 +204,8 @@ public class EnemyBlock : GameObject
             ship.Position = new Vecteur2d(ship.Position.X + deltaX, ship.Position.Y + deltaY);
         }
     }
+
+    // Méthode pour tenter de faire tirer les vaisseaux ennemis de manière aléatoire
      private void TryShoot(double deltaTimeSeconds)
     {
         if (game is null)
@@ -212,6 +225,7 @@ public class EnemyBlock : GameObject
             {
                 if (game.SelectedDifficulty == Game.Difficulty.Hard)
                 {
+                    // Mode de tir plus intelligent en difficulté hard => vise le joueur
                     Vecteur2d playerCenter = new(
                         game.PlayerShip.Position.X + game.PlayerShip.Image.Width / 2.0,
                         game.PlayerShip.Position.Y + game.PlayerShip.Image.Height / 2.0);

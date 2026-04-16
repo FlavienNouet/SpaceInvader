@@ -1,15 +1,18 @@
 namespace SpaceInvader;
-
+/// <summary>
+/// Représente un vaisseau dans le jeu, qui peut être contrôlé par le joueur ou être un ennemi. Le vaisseau peut se déplacer horizontalement, tirer des missiles et subir des collisions basées sur les pixels avec les missiles. Il dispose également d'une animation de tir et d'un son de déplacement pour améliorer l'expérience de jeu.
+/// </summary>
 public class SpaceShip : SimpleObject
 {
     protected double PlayerSpeedPixelPerSecond { get; }
     protected Size GameSize { get; }
     private readonly Game? game;
 
+    // Liste des missiles actifs tirés par ce vaisseau, utilisée pour limiter le nombre de missiles à l'écran et gérer leur cycle de vie
     private readonly List<Missile> activeMissiles = new();
     private Bitmap? alternateImage;
     private double animationTimer;
-    private const double AnimationFrameTime = 0.5; // Switch frame every 0.5 seconds
+    private const double AnimationFrameTime = 0.5; // Changer d'image toutes les 0.5 secondes pour l'animation de tir
     private bool useAlternateFrame;
 
     public SpaceShip(Vecteur2d position, int lives, Bitmap image)
@@ -39,7 +42,7 @@ public class SpaceShip : SimpleObject
         useAlternateFrame = false;
     }
     
-
+    // Méthode Update pour gérer l'animation de tir en alternant entre l'image normale et l'image d'animation
     public override void Update(double deltaTimeSeconds)
     {
      if (alternateImage is not null)
@@ -53,6 +56,7 @@ public class SpaceShip : SimpleObject
         }
     }
 
+    // Dessine le vaisseau en utilisant l'image d'animation si elle est active, sinon l'image normale
     public override void Draw(Graphics graphics)
     {
         ArgumentNullException.ThrowIfNull(graphics);
@@ -62,13 +66,14 @@ public class SpaceShip : SimpleObject
 
     protected override void OnCollision(Missile missile, int numberOfPixelsInCollision)
     {
-        // Collision handling is implemented in Collision for this class.
     }
 
+    // Gère la logique de collision spécifique au vaisseau, en infligeant des dégâts en fonction du nombre de pixels en collision et en déclenchant une explosion si le vaisseau est détruit
     public override void Collision(Missile missile)
     {
         ArgumentNullException.ThrowIfNull(missile);
 
+        //Test pour éviter les collisions inutiles
         if (!IsAlive() || !missile.IsAlive() || Camp == missile.Camp || ReferenceEquals(this, missile))
         {
             return;
@@ -82,6 +87,7 @@ public class SpaceShip : SimpleObject
             return;
         }
 
+        // Collision pixel par pixel entre le missile et le vaisseau
         int numberOfPixelsInCollision = 0;
 
         for (int missileLocalY = 0; missileLocalY < missile.Image.Height; missileLocalY++)
@@ -95,6 +101,7 @@ public class SpaceShip : SimpleObject
                     continue;
                 }
 
+                // Calculer les coordonnées du pixel dans l'image du vaisseau
                 int screenX = missileRectangle.Left + missileLocalX;
                 int screenY = missileRectangle.Top + missileLocalY;
                 int objectLocalX = screenX - objectRectangle.Left;
@@ -129,6 +136,7 @@ public class SpaceShip : SimpleObject
         HandleDeath();
     }
 
+    // Gère la logique de mort du vaisseau, en déclenchant une explosion et en ajoutant des points au score si le vaisseau est détruit
     private void HandleDeath()
     {
          if (!IsAlive() && game is not null && Camp == GameObject.Side.Enemy)
@@ -141,6 +149,7 @@ public class SpaceShip : SimpleObject
         }
     }
 
+// Tire de missile depuis le vaisseau 
  public void Shoot(bool shootDownwards = false)
     {
         if (game is null)
@@ -162,6 +171,7 @@ public class SpaceShip : SimpleObject
             return;
         }
 
+        // Créer un missile avec une animation de tir et une option de homing pour les tirs du joueur
         Bitmap[] animationFrames = Game.CreateMissileAnimationFrames();
         Bitmap missileImage = animationFrames[0];
         Vecteur2d missilePosition = new(
@@ -177,6 +187,7 @@ public class SpaceShip : SimpleObject
         Game.PlayShootSound();
     }
 
+    // Tire un missile vers une position cible spécifique, utilisé pour les tirs spéciaux du joueur
      public void ShootAt(Vecteur2d targetPosition)
     {
         if (game is null)
@@ -190,6 +201,7 @@ public class SpaceShip : SimpleObject
             return;
         }
 
+        // Créer un missile avec une animation de tir et une option de homing pour les tirs du joueur
         Bitmap missileImage = CreateMissileImage();
         Bitmap[] animationFrames = Game.CreateMissileAnimationFrames();
         Vecteur2d missilePosition = new(
@@ -207,6 +219,7 @@ public class SpaceShip : SimpleObject
         Game.PlayShootSound();
     }
 
+    // Bonus : Tire deux missiles simultanément avec un léger décalage horizontal, utilisé pour les tirs doubles du joueur
     private void ShootDouble()
     {
         if (game is null)
@@ -236,6 +249,7 @@ public class SpaceShip : SimpleObject
         Game.PlayShootSound();
     }
 
+    // Nettoie la liste des missiles actifs en supprimant ceux qui ne sont plus vivants, pour éviter d'avoir des références à des missiles détruits
     private void CleanupMissiles()
     {
         activeMissiles.RemoveAll(m => !m.IsAlive());

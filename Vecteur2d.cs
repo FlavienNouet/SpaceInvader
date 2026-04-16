@@ -1,5 +1,7 @@
 namespace SpaceInvader;
-
+/// <summary>
+///  Représente un vecteur en 2D avec des opérations de base telles que l'addition, la soustraction, la multiplication par un scalaire et le calcul de la norme. Cette classe est utilisée pour gérer les positions et les mouvements des objets dans le jeu.
+/// </summary>
 public class Vecteur2d
 {
     public double X { get; set; }
