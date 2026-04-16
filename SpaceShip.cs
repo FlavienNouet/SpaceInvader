@@ -6,7 +6,7 @@ public class SpaceShip : SimpleObject
     protected Size GameSize { get; }
     private readonly Game? game;
 
-    private Missile? missile;
+    private readonly List<Missile> activeMissiles = new();
     private Bitmap? alternateImage;
     private double animationTimer;
     private const double AnimationFrameTime = 0.5; // Switch frame every 0.5 seconds
@@ -65,6 +65,23 @@ public class SpaceShip : SimpleObject
         int damage = Math.Min(Lives, missile.Lives);
         Lives = Math.Max(0, Lives - damage);
         missile.Lives = Math.Max(0, missile.Lives - damage);
+
+         HandleDeath();
+    }
+
+    public void DestroyByBomb()
+    {
+        if (!IsAlive())
+        {
+            return;
+        }
+
+        Lives = 0;
+        HandleDeath();
+    }
+
+    private void HandleDeath()
+    {
          if (!IsAlive() && game is not null && Camp == GameObject.Side.Enemy)
         {
             Bitmap explosionImage = Game.CreateEnemyExplosionImage();
@@ -82,7 +99,14 @@ public class SpaceShip : SimpleObject
             return;
         }
 
-        if (missile is not null && missile.IsAlive())
+         CleanupMissiles();
+        if (activeMissiles.Count > 0)
+        {
+            ShootDouble();
+            return;
+        }
+
+        if (Camp == GameObject.Side.Ally && game.IsDoubleShotActive && !shootDownwards)
         {
             return;
         }
@@ -94,8 +118,10 @@ public class SpaceShip : SimpleObject
             shootDownwards ? Position.Y + Image.Height : Position.Y - missileImage.Height);
 
         double verticalDirection = shootDownwards ? 1 : -1;
+        bool homingEnabled = Camp == GameObject.Side.Ally && game.IsHomingShotActive;
 
-        missile = new Missile(Camp, game, missilePosition, 1, missileImage, game.GameSize, 400, verticalDirection, animationFrames);
+        Missile missile = new Missile(Camp, game, missilePosition, 1, missileImage, game.GameSize, 400, 0, verticalDirection, animationFrames, homingEnabled);
+        activeMissiles.Add(missile);
         game.AddObject(missile);
         Game.PlayShootSound();
     }
@@ -107,7 +133,8 @@ public class SpaceShip : SimpleObject
             return;
         }
 
-        if (missile is not null && missile.IsAlive())
+        CleanupMissiles();
+        if (activeMissiles.Count > 0)
         {
             return;
         }
@@ -123,9 +150,44 @@ public class SpaceShip : SimpleObject
         double directionX = targetPosition.X - missileCenterX;
         double directionY = targetPosition.Y - missileCenterY;
 
-        missile = new Missile(Camp, game, missilePosition, 1, missileImage, game.GameSize, 400, directionX, directionY, animationFrames);
+        Missile missile = new Missile(Camp, game, missilePosition, 1, missileImage, game.GameSize, 400, directionX, directionY, animationFrames, false);
+        activeMissiles.Add(missile);
         game.AddObject(missile);
         Game.PlayShootSound();
+    }
+
+    private void ShootDouble()
+    {
+        if (game is null)
+        {
+            return;
+        }
+
+        Bitmap missileImage = CreateMissileImage();
+        Bitmap[] animationFrames = Game.CreateMissileAnimationFrames();
+        const double sideOffset = 10;
+        bool homingEnabled = game.IsHomingShotActive;
+
+        Vecteur2d leftPosition = new(
+            Position.X + (Image.Width - missileImage.Width) / 2.0 - sideOffset,
+            Position.Y - missileImage.Height);
+        Vecteur2d rightPosition = new(
+            Position.X + (Image.Width - missileImage.Width) / 2.0 + sideOffset,
+            Position.Y - missileImage.Height);
+
+        Missile leftMissile = new Missile(Camp, game, leftPosition, 1, missileImage, game.GameSize, 400, 0, -1, animationFrames, homingEnabled);
+        Missile rightMissile = new Missile(Camp, game, rightPosition, 1, missileImage, game.GameSize, 400, 0, -1, animationFrames, homingEnabled);
+
+        activeMissiles.Add(leftMissile);
+        activeMissiles.Add(rightMissile);
+        game.AddObject(leftMissile);
+        game.AddObject(rightMissile);
+        Game.PlayShootSound();
+    }
+
+    private void CleanupMissiles()
+    {
+        activeMissiles.RemoveAll(m => !m.IsAlive());
     }
     protected static bool IsKeyDown(Keys key)
     {

@@ -6,8 +6,9 @@ public class Missile : SimpleObject
 
     private readonly Size gameSize;
     private readonly Game? game;
-    private readonly double directionX;
-    private readonly double directionY;
+     private double directionX;
+    private double directionY;
+    private readonly bool homingEnabled;
     private readonly Bitmap[] animationFrames;
     private double animationTimer;
     private int currentFrameIndex;
@@ -23,17 +24,18 @@ public class Missile : SimpleObject
     {
     }
 
-    public Missile(GameObject.Side camp, Game? game, Vecteur2d position, int lives, Bitmap image, Size gameSize, double vitesse, double verticalDirection, Bitmap[]? animationFrames = null)
-          : this(camp, game, position, lives, image, gameSize, vitesse, 0, verticalDirection, animationFrames)
+   public Missile(GameObject.Side camp, Game? game, Vecteur2d position, int lives, Bitmap image, Size gameSize, double vitesse, double verticalDirection, Bitmap[]? animationFrames = null, bool homingEnabled = false)
+        : this(camp, game, position, lives, image, gameSize, vitesse, 0, verticalDirection, animationFrames, homingEnabled)
     {
     }
 
-    public Missile(GameObject.Side camp, Game? game, Vecteur2d position, int lives, Bitmap image, Size gameSize, double vitesse, double directionX, double directionY, Bitmap[]? animationFrames = null)
+    public Missile(GameObject.Side camp, Game? game, Vecteur2d position, int lives, Bitmap image, Size gameSize, double vitesse, double directionX, double directionY, Bitmap[]? animationFrames = null, bool homingEnabled = false)
         : base(camp, position, lives, image)
     {
         this.game = game;
         this.gameSize = gameSize;
         Vitesse = vitesse;
+        this.homingEnabled = homingEnabled;
          double length = Math.Sqrt(directionX * directionX + directionY * directionY);
         if (length <= double.Epsilon)
         {
@@ -63,6 +65,34 @@ public class Missile : SimpleObject
             animationTimer -= AnimationFrameTime;
             currentFrameIndex = (currentFrameIndex + 1) % animationFrames.Length;
         }
+
+         if (homingEnabled && Camp == GameObject.Side.Ally && game is not null && game.TryGetNearestEnemyTarget(Position, out Vecteur2d target))
+        {
+            double centerX = Position.X + animationFrames[currentFrameIndex].Width / 2.0;
+            double centerY = Position.Y + animationFrames[currentFrameIndex].Height / 2.0;
+            double desiredX = target.X - centerX;
+            double desiredY = target.Y - centerY;
+            double desiredLength = Math.Sqrt(desiredX * desiredX + desiredY * desiredY);
+
+            if (desiredLength > double.Epsilon)
+            {
+                desiredX /= desiredLength;
+                desiredY /= desiredLength;
+
+                double turnFactor = Math.Clamp(7 * deltaTimeSeconds, 0, 1);
+                directionX = directionX + (desiredX - directionX) * turnFactor;
+                directionY = directionY + (desiredY - directionY) * turnFactor;
+
+                double newLength = Math.Sqrt(directionX * directionX + directionY * directionY);
+                if (newLength > double.Epsilon)
+                {
+                    directionX /= newLength;
+                    directionY /= newLength;
+                }
+            }
+        }
+
+
 
         Position = new Vecteur2d(
             Position.X + directionX * Vitesse * deltaTimeSeconds,

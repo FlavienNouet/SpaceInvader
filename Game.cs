@@ -11,6 +11,11 @@ public class Game
     private const string BackgroundMusicAlias = "bgm_track";
     private const int MaxWaves = 5;
     private const double WaveBannerDurationSeconds = 1.8;
+    private const int DoubleShotScoreThreshold = 500;
+    private const int BombScoreThreshold = 700;
+    private const int HomingShotScoreThreshold = 1000;
+    private const double DoubleShotDurationSeconds = 20;
+    private const double HomingShotDurationSeconds = 10;
     public enum GameState
     {
         Menu,
@@ -34,9 +39,19 @@ public class Game
     private int score;
     private int waveNumber = 1;
     public int WaveNumber => waveNumber;
+
+    public bool IsDoubleShotActive => doubleShotRemainingSeconds > 0;
+
+    public bool IsHomingShotActive => homingShotRemainingSeconds > 0;
     private double waveBannerRemainingSeconds;
     private bool isUpdating;
     private GameState state = GameState.Menu;
+
+    private double doubleShotRemainingSeconds;
+    private double homingShotRemainingSeconds;
+    private bool doubleShotUnlocked;
+    private bool bombUnlocked;
+    private bool homingUnlocked;
     private bool pKeyWasDown;
     private bool spaceKeyWasDown;
     private Difficulty selectedDifficulty = Difficulty.Easy;
@@ -160,6 +175,16 @@ public class Game
             waveBannerRemainingSeconds = Math.Max(0, waveBannerRemainingSeconds - deltaTimeSeconds);
         }
 
+        if (doubleShotRemainingSeconds > 0)
+        {
+            doubleShotRemainingSeconds = Math.Max(0, doubleShotRemainingSeconds - deltaTimeSeconds);
+        }
+
+        if (homingShotRemainingSeconds > 0)
+        {
+            homingShotRemainingSeconds = Math.Max(0, homingShotRemainingSeconds - deltaTimeSeconds);
+        }
+
         isUpdating = true;
 
         foreach (GameObject gameObject in objects)
@@ -174,6 +199,8 @@ public class Game
             objects.AddRange(pendingObjects);
             pendingObjects.Clear();
         }
+
+        CheckScoreBonuses();
 
         if (enemies.IsAlive() && enemies.Position.Y + enemies.Size.Height >= playerShip.Position.Y)
         {
@@ -220,6 +247,19 @@ public class Game
             }
         }
         graphics.DrawString($"Score: {score} | Vague: {waveNumber}", SystemFonts.DefaultFont, Brushes.White, 10f, gameSize.Height - 24f);
+
+         float bonusX = 10f;
+        float bonusY = gameSize.Height - 42f;
+        if (IsDoubleShotActive)
+        {
+            graphics.DrawString($"Double tir: {Math.Ceiling(doubleShotRemainingSeconds)}s", SystemFonts.DefaultFont, Brushes.LightBlue, bonusX, bonusY);
+            bonusY -= 18f;
+        }
+
+        if (IsHomingShotActive)
+        {
+            graphics.DrawString($"Tirs guides: {Math.Ceiling(homingShotRemainingSeconds)}s", SystemFonts.DefaultFont, Brushes.Gold, bonusX, bonusY);
+        }
 
         string message = state switch
         {
@@ -311,6 +351,11 @@ private void DrawMenu(Graphics graphics)
         score = 0;
         waveNumber = 1;
         waveBannerRemainingSeconds = WaveBannerDurationSeconds;
+        doubleShotRemainingSeconds = 0;
+        homingShotRemainingSeconds = 0;
+        doubleShotUnlocked = false;
+        bombUnlocked = false;
+        homingUnlocked = false;
         isUpdating = false;
         pKeyWasDown = false;
         spaceKeyWasDown = false;
@@ -351,7 +396,44 @@ private void StartNextWave()
         mKeyWasDown = false;
         escapeKeyWasDown = false;
         waveBannerRemainingSeconds = 0;
+        doubleShotRemainingSeconds = 0;
+        homingShotRemainingSeconds = 0;
+        doubleShotUnlocked = false;
+        bombUnlocked = false;
+        homingUnlocked = false;
         state = GameState.Menu;
+    }
+
+    private void CheckScoreBonuses()
+    {
+        if (!doubleShotUnlocked && score >= DoubleShotScoreThreshold)
+        {
+            doubleShotUnlocked = true;
+            doubleShotRemainingSeconds = DoubleShotDurationSeconds;
+        }
+
+        if (!bombUnlocked && score >= BombScoreThreshold)
+        {
+            bombUnlocked = true;
+            enemies.DestroyAllEnemiesByBomb();
+        }
+
+        if (!homingUnlocked && score >= HomingShotScoreThreshold)
+        {
+            homingUnlocked = true;
+            homingShotRemainingSeconds = HomingShotDurationSeconds;
+        }
+    }
+
+    public bool TryGetNearestEnemyTarget(Vecteur2d fromPosition, out Vecteur2d targetPosition)
+    {
+        if (enemies is null || !enemies.IsAlive())
+        {
+            targetPosition = new Vecteur2d();
+            return false;
+        }
+
+        return enemies.TryGetNearestEnemyCenter(fromPosition, out targetPosition);
     }
 
      private static bool KeyPressed(Keys key, ref bool wasDown)

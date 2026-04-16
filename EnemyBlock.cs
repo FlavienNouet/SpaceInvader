@@ -155,6 +155,44 @@ public class EnemyBlock : GameObject
 
         UpdateSize();
     }
+
+    public void DestroyAllEnemiesByBomb()
+    {
+        foreach (SpaceShip ship in enemyShips)
+        {
+            ship.DestroyByBomb();
+        }
+
+        UpdateSize();
+    }
+
+    public bool TryGetNearestEnemyCenter(Vecteur2d fromPosition, out Vecteur2d targetPosition)
+    {
+        ArgumentNullException.ThrowIfNull(fromPosition);
+
+        List<SpaceShip> aliveShips = enemyShips.Where(ship => ship.IsAlive()).ToList();
+        if (aliveShips.Count == 0)
+        {
+            targetPosition = new Vecteur2d();
+            return false;
+        }
+
+        SpaceShip nearestShip = aliveShips
+            .OrderBy(ship =>
+            {
+                double centerX = ship.Position.X + ship.Image.Width / 2.0;
+                double centerY = ship.Position.Y + ship.Image.Height / 2.0;
+                double dx = centerX - fromPosition.X;
+                double dy = centerY - fromPosition.Y;
+                return dx * dx + dy * dy;
+            })
+            .First();
+
+        targetPosition = new Vecteur2d(
+            nearestShip.Position.X + nearestShip.Image.Width / 2.0,
+            nearestShip.Position.Y + nearestShip.Image.Height / 2.0);
+        return true;
+    }
     private void MoveShips(double deltaX, double deltaY)
     {
         foreach (SpaceShip ship in enemyShips)
