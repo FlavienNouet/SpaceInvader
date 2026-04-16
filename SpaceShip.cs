@@ -50,7 +50,7 @@ public class SpaceShip : SimpleObject
             Position.X + (Image.Width - missileImage.Width) / 2.0,
             Position.Y - missileImage.Height);
 
-        missile = new Missile(missilePosition, 1, missileImage, game.GameSize);
+        missile = new Missile(game, missilePosition, 1, missileImage, game.GameSize);
         game.AddObject(missile);
     }
     private static bool IsKeyDown(Keys key)

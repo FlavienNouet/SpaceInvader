@@ -7,4 +7,6 @@ public abstract class GameObject
     public abstract void Draw(Graphics graphics);
 
     public abstract bool IsAlive();
+
+    public abstract void Collision(Missile missile);
 }

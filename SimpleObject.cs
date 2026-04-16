@@ -28,4 +28,8 @@ public abstract class SimpleObject : GameObject
     {
         return Lives > 0;
     }
+
+    public override void Collision(Missile missile)
+    {
+    }
 }

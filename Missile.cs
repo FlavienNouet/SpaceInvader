@@ -5,16 +5,17 @@ public class Missile : SimpleObject
     public double Vitesse { get; set; }
 
     private readonly Size gameSize;
+    private readonly Game game;
 
     public Missile(Vecteur2d position, int lives, Bitmap image)
-        : this(position, lives, image, SystemInformation.VirtualScreen.Size)
+        : this(null, position, lives, image, SystemInformation.VirtualScreen.Size)
     {
     }
 
-    public Missile(Vecteur2d position, int lives, Bitmap image, Size gameSize, double vitesse = 400)
+    public Missile(Game? game, Vecteur2d position, int lives, Bitmap image, Size gameSize, double vitesse = 400)
         : base(position, lives, image)
     {
-        this.gameSize = gameSize;
+        this.game = game!;
         Vitesse = vitesse;
     }
 
@@ -30,6 +31,13 @@ public class Missile : SimpleObject
         if (Position.Y + Image.Height < 0 || Position.X > gameSize.Width || Position.Y > gameSize.Height)
         {
             Lives = 0;
+        }
+        if (game is not null)
+        {
+            foreach (GameObject gameObject in game.Objects)
+            {
+                gameObject.Collision(this);
+            }
         }
     }
 
