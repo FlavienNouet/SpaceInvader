@@ -2,6 +2,7 @@ namespace SpaceInvader;
 
 public class Bunker : SimpleObject
 {
+    private const int ImpactRadiusPixels = 10;
     private readonly Game? game;
 
     public Bunker(Vecteur2d position)
@@ -69,7 +70,7 @@ public class Bunker : SimpleObject
                     continue;
                 }
 
-                Image.SetPixel(bunkerLocalX, bunkerLocalY, Color.Transparent);
+                DestroyPixelsInRadius(bunkerLocalX, bunkerLocalY, ImpactRadiusPixels);
                 impactScreenX = screenX;
                 impactScreenY = screenY;
                 hasCollision = true;
@@ -89,6 +90,31 @@ public class Bunker : SimpleObject
                     impactScreenY - impactImage.Height / 2.0);
 
                 game.AddObject(new Explosion(explosionPosition, impactImage));
+            }
+        }
+    }
+
+    private void DestroyPixelsInRadius(int centerX, int centerY, int radius)
+    {
+        int radiusSquared = radius * radius;
+
+        for (int y = Math.Max(0, centerY - radius); y <= Math.Min(Image.Height - 1, centerY + radius); y++)
+        {
+            for (int x = Math.Max(0, centerX - radius); x <= Math.Min(Image.Width - 1, centerX + radius); x++)
+            {
+                int dx = x - centerX;
+                int dy = y - centerY;
+
+                if (dx * dx + dy * dy > radiusSquared)
+                {
+                    continue;
+                }
+
+                Color pixel = Image.GetPixel(x, y);
+                if (pixel.A > 0)
+                {
+                    Image.SetPixel(x, y, Color.Transparent);
+                }
             }
         }
     }
