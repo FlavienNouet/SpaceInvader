@@ -4,6 +4,9 @@ public class SpaceShip : GameObject
 {
     private readonly double playerSpeedPixelPerSecond;
     private readonly Size gameSize;
+    private readonly Game game;
+
+    private Missile? missile;
 
     public Vecteur2d Position { get; set; }
 
@@ -11,20 +14,26 @@ public class SpaceShip : GameObject
 
     public Bitmap Image { get; }
 
-    public SpaceShip(Vecteur2d position, int lives, Bitmap image, Size gameSize, double playerSpeedPixelPerSecond = 200)
-    {
+    public SpaceShip(Game game, Vecteur2d position, int lives, Bitmap image, Size gameSize, double playerSpeedPixelPerSecond = 200)    {
         ArgumentNullException.ThrowIfNull(position);
+        ArgumentNullException.ThrowIfNull(game);
         ArgumentNullException.ThrowIfNull(image);
 
+        this.game = game;
         Position = position;
         Lives = lives;
         Image = image;
         this.gameSize = gameSize;
         this.playerSpeedPixelPerSecond = playerSpeedPixelPerSecond;
+        this.game = game;   
     }
 
     public override void Update(double deltaTimeSeconds)
     {
+        if (IsKeyDown(Keys.Space))
+        {
+            Shoot();
+        }
         double moveDistance = playerSpeedPixelPerSecond * deltaTimeSeconds;
 
         if (IsKeyDown(Keys.Left) || IsKeyDown(Keys.A))
@@ -39,6 +48,21 @@ public class SpaceShip : GameObject
         }
     }
 
+ public void Shoot()
+    {
+        if (missile is not null && missile.IsAlive())
+        {
+            return;
+        }
+
+        Bitmap missileImage = CreateMissileImage();
+        Vecteur2d missilePosition = new(
+            Position.X + (Image.Width - missileImage.Width) / 2.0,
+            Position.Y - missileImage.Height);
+
+        missile = new Missile(missilePosition, 1, missileImage, game.GameSize);
+        game.AddObject(missile);
+    }
     public override void Draw(Graphics graphics)
     {
         ArgumentNullException.ThrowIfNull(graphics);
@@ -54,6 +78,19 @@ public class SpaceShip : GameObject
     private static bool IsKeyDown(Keys key)
     {
         return (GetAsyncKeyState((int)key) & 0x8000) != 0;
+    }
+
+    private static Bitmap CreateMissileImage()
+    {
+        Bitmap bitmap = new(6, 16);
+
+        using Graphics graphics = Graphics.FromImage(bitmap);
+        graphics.Clear(Color.Transparent);
+
+        using Brush brush = new SolidBrush(Color.Yellow);
+        graphics.FillRectangle(brush, 2, 0, 2, 16);
+
+        return bitmap;
     }
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]

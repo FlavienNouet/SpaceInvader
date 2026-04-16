@@ -3,13 +3,16 @@ namespace SpaceInvader;
 public class Game
 {
     private readonly List<GameObject> objects = new();
+    private readonly List<GameObject> pendingObjects = new();
     private readonly SpaceShip playerShip;
 
     private readonly Size gameSize;
+    private bool isUpdating;
 
     public IReadOnlyList<GameObject> Objects => objects;
 
     public SpaceShip PlayerShip => playerShip;
+    public Size GameSize => gameSize;
 
     public Game(Size clientSize)
     {
@@ -19,15 +22,38 @@ public class Game
             (clientSize.Width - shipImage.Width) / 2.0,
             Math.Max(0, clientSize.Height - shipImage.Height - 20));
 
-        playerShip = new SpaceShip(startPosition, 3, shipImage, gameSize);
+        playerShip = new SpaceShip(this, startPosition, 3, shipImage, gameSize);
         objects.Add(playerShip);
     }
 
-    public void Update(double deltaTimeSeconds)
+    public void AddObject(GameObject gameObject)
     {
+        ArgumentNullException.ThrowIfNull(gameObject);
+
+        if (isUpdating)
+        {
+            pendingObjects.Add(gameObject);
+            return;
+        }
+
+        objects.Add(gameObject);
+    }
+
+     public void Update(double deltaTimeSeconds)
+    {
+        isUpdating = true;
+
         foreach (GameObject gameObject in objects)
         {
             gameObject.Update(deltaTimeSeconds);
+        }
+
+        isUpdating = false;
+
+        if (pendingObjects.Count > 0)
+        {
+            objects.AddRange(pendingObjects);
+            pendingObjects.Clear();
         }
     }
 
