@@ -2,12 +2,19 @@ namespace SpaceInvader;
 
 public class Game
 {
+    public enum GameState
+    {
+        Play,
+        Pause
+    }
     private readonly List<GameObject> objects = new();
     private readonly List<GameObject> pendingObjects = new();
     private readonly SpaceShip playerShip;
 
     private readonly Size gameSize;
     private bool isUpdating;
+    private GameState state = GameState.Play;
+    private bool pKeyWasDown;
 
     public IReadOnlyList<GameObject> Objects => objects;
 
@@ -41,6 +48,15 @@ public class Game
 
      public void Update(double deltaTimeSeconds)
     {
+        if (ReleaseKey(Keys.P))
+        {
+            state = state == GameState.Play ? GameState.Pause : GameState.Play;
+        }
+
+        if (state == GameState.Pause)
+        {
+            return;
+        }
         isUpdating = true;
 
         foreach (GameObject gameObject in objects)
@@ -59,12 +75,46 @@ public class Game
 
     public void Draw(Graphics graphics)
     {
+        ArgumentNullException.ThrowIfNull(graphics);
+
         foreach (GameObject gameObject in objects)
         {
             gameObject.Draw(graphics);
         }
+        string message = state == GameState.Pause ? "Pause" : "Jeu en cours";
+
+        if (state == GameState.Pause)
+        {
+            using Font font = new(FontFamily.GenericSansSerif, 32, FontStyle.Bold, GraphicsUnit.Point);
+            using StringFormat format = new()
+            {
+                Alignment = StringAlignment.Center,
+                LineAlignment = StringAlignment.Center
+            };
+
+            RectangleF bounds = new(0, 0, gameSize.Width, gameSize.Height);
+            graphics.DrawString(message, font, Brushes.Black, bounds, format);
+            return;
+        }
+
+        graphics.DrawString(message, SystemFonts.DefaultFont, Brushes.Black, 10f, 10f);
     }
 
+    private bool ReleaseKey(Keys key)
+    {
+        bool isDown = (GetAsyncKeyState((int)key) & 0x8000) != 0;
+        bool released = pKeyWasDown && !isDown;
+
+        if (key == Keys.P)
+        {
+            pKeyWasDown = isDown;
+        }
+
+        return released;
+    }
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern short GetAsyncKeyState(int vKey);
     private static Bitmap CreatePlayerShipImage()
     {
         Bitmap bitmap = new(48, 48);
