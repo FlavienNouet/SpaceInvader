@@ -13,11 +13,6 @@ C:\Users\Flavien\Desktop\SpaceInvader\SpaceInvader\obj\Debug\net9.0-windows\refi
 C:\Users\Flavien\Desktop\SpaceInvader\SpaceInvader\obj\Debug\net9.0-windows\SpaceInvader.pdb
 C:\Users\Flavien\Desktop\SpaceInvader\SpaceInvader\obj\Debug\net9.0-windows\SpaceInvader.genruntimeconfig.cache
 C:\Users\Flavien\Desktop\SpaceInvader\SpaceInvader\obj\Debug\net9.0-windows\ref\SpaceInvader.dll
-C:\Users\Flavien\Desktop\SpaceInvader\obj\Debug\net9.0-windows\SpaceInvader.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\Flavien\Desktop\SpaceInvader\obj\Debug\net9.0-windows\SpaceInvader.AssemblyInfoInputs.cache
-C:\Users\Flavien\Desktop\SpaceInvader\obj\Debug\net9.0-windows\SpaceInvader.AssemblyInfo.cs
-C:\Users\Flavien\Desktop\SpaceInvader\obj\Debug\net9.0-windows\SpaceInvader.csproj.CoreCompileInputs.cache
-C:\Users\Flavien\Desktop\SpaceInvader\obj\Debug\net9.0-windows\SpaceInvader.sourcelink.json
 C:\Users\Flavien\Desktop\SpaceInvader\bin\Debug\net9.0-windows\assets\Audio\invaderkilled.wav
 C:\Users\Flavien\Desktop\SpaceInvader\bin\Debug\net9.0-windows\assets\Audio\shoot.wav
 C:\Users\Flavien\Desktop\SpaceInvader\bin\Debug\net9.0-windows\assets\Audio\spaceinvaders1.mpeg
@@ -68,6 +63,11 @@ C:\Users\Flavien\Desktop\SpaceInvader\bin\Debug\net9.0-windows\SpaceInvader.deps
 C:\Users\Flavien\Desktop\SpaceInvader\bin\Debug\net9.0-windows\SpaceInvader.runtimeconfig.json
 C:\Users\Flavien\Desktop\SpaceInvader\bin\Debug\net9.0-windows\SpaceInvader.dll
 C:\Users\Flavien\Desktop\SpaceInvader\bin\Debug\net9.0-windows\SpaceInvader.pdb
+C:\Users\Flavien\Desktop\SpaceInvader\obj\Debug\net9.0-windows\SpaceInvader.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Flavien\Desktop\SpaceInvader\obj\Debug\net9.0-windows\SpaceInvader.AssemblyInfoInputs.cache
+C:\Users\Flavien\Desktop\SpaceInvader\obj\Debug\net9.0-windows\SpaceInvader.AssemblyInfo.cs
+C:\Users\Flavien\Desktop\SpaceInvader\obj\Debug\net9.0-windows\SpaceInvader.csproj.CoreCompileInputs.cache
+C:\Users\Flavien\Desktop\SpaceInvader\obj\Debug\net9.0-windows\SpaceInvader.sourcelink.json
 C:\Users\Flavien\Desktop\SpaceInvader\obj\Debug\net9.0-windows\SpaceInvader.dll
 C:\Users\Flavien\Desktop\SpaceInvader\obj\Debug\net9.0-windows\refint\SpaceInvader.dll
 C:\Users\Flavien\Desktop\SpaceInvader\obj\Debug\net9.0-windows\SpaceInvader.pdb

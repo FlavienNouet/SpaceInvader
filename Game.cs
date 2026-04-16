@@ -5,6 +5,7 @@ public class Game
      private static readonly Rectangle PlayerShipSourceRect = new(355, 1163, 104, 64);
     private static readonly Rectangle BunkerSourceRect = new(402, 965, 176, 128);
     private static readonly Rectangle MissileSourceRect = new(350, 864, 4, 103);
+    private static System.Media.SoundPlayer? shootSound;
     public enum GameState
     {
         Play,
@@ -305,6 +306,22 @@ public class Game
         }
 
         return frames;
+    }
+
+    internal static void PlayShootSound()
+    {
+        if (shootSound is null)
+        {
+            string filePath = Path.Combine(AppContext.BaseDirectory, "assets", "Audio", "shoot.wav");
+            if (!File.Exists(filePath))
+            {
+                return;
+            }
+
+            shootSound = new System.Media.SoundPlayer(filePath);
+        }
+
+        shootSound.Play();
     }
 
         private static Bitmap CreateSpriteFromSheet(Rectangle sourceRectangle, Size targetSize)

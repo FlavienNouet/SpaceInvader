@@ -95,6 +95,7 @@ public class SpaceShip : SimpleObject
 
         missile = new Missile(Camp, game, missilePosition, 1, missileImage, game.GameSize, 400, verticalDirection, animationFrames);
         game.AddObject(missile);
+        Game.PlayShootSound();
     }
     protected static bool IsKeyDown(Keys key)
     {

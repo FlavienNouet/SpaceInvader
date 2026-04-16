@@ -1,10 +1,22 @@
+using System.Media;
+
 namespace SpaceInvader;
 
 public class PlayerSpaceship : SpaceShip
 {
+    private readonly SoundPlayer? movementSound;
+    private bool isMovementSoundPlaying;
     public PlayerSpaceship(Game game, Vecteur2d position, int lives, Bitmap image, Size gameSize, double playerSpeedPixelPerSecond = 200)
         : base(GameObject.Side.Ally, game, position, lives, image, gameSize, playerSpeedPixelPerSecond)
     {
+        string soundPath = Path.Combine(AppContext.BaseDirectory, "assets", "Audio", "ufo_lowpitch.wav");
+
+        if (File.Exists(soundPath))
+        {
+            movementSound = new SoundPlayer(soundPath);
+        }
+
+        isMovementSoundPlaying = false;
     }
 
      public override void Draw(Graphics graphics)
@@ -23,17 +35,50 @@ public class PlayerSpaceship : SpaceShip
         }
 
         double moveDistance = PlayerSpeedPixelPerSecond * deltaTimeSeconds;
+        bool moveLeft = IsKeyDown(Keys.Left) || IsKeyDown(Keys.A);
+        bool moveRight = IsKeyDown(Keys.Right) || IsKeyDown(Keys.D);
+        bool isMovingHorizontally = moveLeft || moveRight;
 
-        if (IsKeyDown(Keys.Left) || IsKeyDown(Keys.A))
+        if (moveLeft)
         {
             Position = new Vecteur2d(Math.Max(0, Position.X - moveDistance), Position.Y);
         }
 
-        if (IsKeyDown(Keys.Right) || IsKeyDown(Keys.D))
+        if (moveRight)
         {
             double maxX = Math.Max(0, GameSize.Width - Image.Width);
             Position = new Vecteur2d(Math.Min(maxX, Position.X + moveDistance), Position.Y);
         }
+          if (isMovingHorizontally)
+        {
+            StartMovementSound();
+        }
+        else
+        {
+            StopMovementSound();
+        }
+    }
+
+    private void StartMovementSound()
+    {
+        if (movementSound is null || isMovementSoundPlaying)
+        {
+            return;
+        }
+
+        movementSound.PlayLooping();
+        isMovementSoundPlaying = true;
+    }
+
+    private void StopMovementSound()
+    {
+        if (movementSound is null || !isMovementSoundPlaying)
+        {
+            return;
+        }
+
+        movementSound.Stop();
+        isMovementSoundPlaying = false;
     }
     }
 
