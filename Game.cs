@@ -2,6 +2,10 @@ namespace SpaceInvader;
 
 public class Game
 {
+     private static readonly Rectangle PlayerShipSourceRect = new(355, 1163, 104, 64);
+    private static readonly Rectangle EnemyShipSourceRect = new(390, 785, 192, 84);
+    private static readonly Rectangle BunkerSourceRect = new(402, 965, 176, 128);
+    private static readonly Rectangle MissileSourceRect = new(350, 864, 4, 103);
     public enum GameState
     {
         Play,
@@ -209,52 +213,41 @@ public class Game
     private static extern short GetAsyncKeyState(int vKey);
     private static Bitmap CreatePlayerShipImage()
     {
-        Bitmap bitmap = new(48, 48);
-
-        using Graphics graphics = Graphics.FromImage(bitmap);
-        graphics.Clear(Color.Transparent);
-        graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-
-        using Brush bodyBrush = new SolidBrush(Color.SteelBlue);
-        using Brush cockpitBrush = new SolidBrush(Color.WhiteSmoke);
-        using Pen outlinePen = new(Color.White, 2);
-
-        PointF[] shipPoints =
-        [
-            new PointF(24, 2),
-            new PointF(44, 38),
-            new PointF(32, 34),
-            new PointF(24, 46),
-            new PointF(16, 34),
-            new PointF(4, 38)
-        ];
-
-        graphics.FillPolygon(bodyBrush, shipPoints);
-        graphics.DrawPolygon(outlinePen, shipPoints);
-        graphics.FillEllipse(cockpitBrush, 18, 14, 12, 12);
-
-        return bitmap;
+        return CreateSpriteFromSheet(PlayerShipSourceRect, new Size(48, 48));
     }
 
     private static Bitmap CreateEnemyShipImage()
     {
-        Bitmap bitmap = new(42, 30);
+        return CreateSpriteFromSheet(EnemyShipSourceRect, new Size(42, 30));
+    }
+
+        internal static Bitmap CreateBunkerImage()
+    {
+        return CreateSpriteFromSheet(BunkerSourceRect, new Size(60, 40));
+    }
+
+        internal static Bitmap CreateMissileImage()
+    {
+        return CreateSpriteFromSheet(MissileSourceRect, new Size(6, 16));
+    }
+
+        private static Bitmap CreateSpriteFromSheet(Rectangle sourceRectangle, Size targetSize)
+    {
+        using Bitmap spriteSheet = LoadSpriteSheet();
+        Bitmap bitmap = new(targetSize.Width, targetSize.Height);
 
         using Graphics graphics = Graphics.FromImage(bitmap);
         graphics.Clear(Color.Transparent);
-        graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-
-        using Brush bodyBrush = new SolidBrush(Color.DarkSlateGray);
-        using Brush eyeBrush = new SolidBrush(Color.White);
-
-        graphics.FillRectangle(bodyBrush, 3, 10, 36, 12);
-        graphics.FillRectangle(bodyBrush, 8, 4, 26, 8);
-        graphics.FillRectangle(bodyBrush, 6, 22, 6, 6);
-        graphics.FillRectangle(bodyBrush, 30, 22, 6, 6);
-
-        graphics.FillRectangle(eyeBrush, 14, 12, 4, 4);
-        graphics.FillRectangle(eyeBrush, 24, 12, 4, 4);
+        graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+        graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
+        graphics.DrawImage(spriteSheet, new Rectangle(Point.Empty, targetSize), sourceRectangle, GraphicsUnit.Pixel);
 
         return bitmap;
+    }
+
+    private static Bitmap LoadSpriteSheet()
+    {
+        string sheetPath = Path.Combine(AppContext.BaseDirectory, "assets", "spaceinvaderspritesheet.png");
+        return new Bitmap(Image.FromFile(sheetPath));
     }
 }

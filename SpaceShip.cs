@@ -74,15 +74,7 @@ public class SpaceShip : SimpleObject
 
     private static Bitmap CreateMissileImage()
     {
-        Bitmap bitmap = new(6, 16);
-
-        using Graphics graphics = Graphics.FromImage(bitmap);
-        graphics.Clear(Color.Transparent);
-
-        using Brush brush = new SolidBrush(Color.Yellow);
-        graphics.FillRectangle(brush, 2, 0, 2, 16);
-
-        return bitmap;
+       return Game.CreateMissileImage();
     }
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]
