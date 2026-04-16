@@ -6,7 +6,8 @@ public class Missile : SimpleObject
 
     private readonly Size gameSize;
     private readonly Game? game;
-    private readonly double verticalDirection;
+    private readonly double directionX;
+    private readonly double directionY;
     private readonly Bitmap[] animationFrames;
     private double animationTimer;
     private int currentFrameIndex;
@@ -23,12 +24,27 @@ public class Missile : SimpleObject
     }
 
     public Missile(GameObject.Side camp, Game? game, Vecteur2d position, int lives, Bitmap image, Size gameSize, double vitesse, double verticalDirection, Bitmap[]? animationFrames = null)
+          : this(camp, game, position, lives, image, gameSize, vitesse, 0, verticalDirection, animationFrames)
+    {
+    }
+
+    public Missile(GameObject.Side camp, Game? game, Vecteur2d position, int lives, Bitmap image, Size gameSize, double vitesse, double directionX, double directionY, Bitmap[]? animationFrames = null)
         : base(camp, position, lives, image)
     {
         this.game = game;
         this.gameSize = gameSize;
         Vitesse = vitesse;
-        this.verticalDirection = verticalDirection;
+         double length = Math.Sqrt(directionX * directionX + directionY * directionY);
+        if (length <= double.Epsilon)
+        {
+            this.directionX = 0;
+            this.directionY = -1;
+        }
+        else
+        {
+            this.directionX = directionX / length;
+            this.directionY = directionY / length;
+        }
         this.animationFrames = animationFrames ?? new[] { image };
         animationTimer = 0;
         currentFrameIndex = 0;
@@ -48,12 +64,16 @@ public class Missile : SimpleObject
             currentFrameIndex = (currentFrameIndex + 1) % animationFrames.Length;
         }
 
-        Position = new Vecteur2d(Position.X, Position.Y + verticalDirection * Vitesse * deltaTimeSeconds);
+        Position = new Vecteur2d(
+            Position.X + directionX * Vitesse * deltaTimeSeconds,
+            Position.Y + directionY * Vitesse * deltaTimeSeconds);
 
         bool outOfTop = Position.Y + animationFrames[currentFrameIndex].Height < 0;
         bool outOfBottom = Position.Y > gameSize.Height;
+        bool outOfLeft = Position.X + animationFrames[currentFrameIndex].Width < 0;
+        bool outOfRight = Position.X > gameSize.Width;
 
-        if (outOfTop || outOfBottom || Position.X > gameSize.Width)
+        if (outOfTop || outOfBottom || outOfLeft || outOfRight)
         {
             Lives = 0;
         }

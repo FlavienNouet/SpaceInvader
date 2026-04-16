@@ -99,6 +99,34 @@ public class SpaceShip : SimpleObject
         game.AddObject(missile);
         Game.PlayShootSound();
     }
+
+     public void ShootAt(Vecteur2d targetPosition)
+    {
+        if (game is null)
+        {
+            return;
+        }
+
+        if (missile is not null && missile.IsAlive())
+        {
+            return;
+        }
+
+        Bitmap missileImage = CreateMissileImage();
+        Bitmap[] animationFrames = Game.CreateMissileAnimationFrames();
+        Vecteur2d missilePosition = new(
+            Position.X + (Image.Width - missileImage.Width) / 2.0,
+            Position.Y + Image.Height);
+
+        double missileCenterX = missilePosition.X + missileImage.Width / 2.0;
+        double missileCenterY = missilePosition.Y + missileImage.Height / 2.0;
+        double directionX = targetPosition.X - missileCenterX;
+        double directionY = targetPosition.Y - missileCenterY;
+
+        missile = new Missile(Camp, game, missilePosition, 1, missileImage, game.GameSize, 400, directionX, directionY, animationFrames);
+        game.AddObject(missile);
+        Game.PlayShootSound();
+    }
     protected static bool IsKeyDown(Keys key)
     {
         return (GetAsyncKeyState((int)key) & 0x8000) != 0;
