@@ -8,11 +8,4 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Include="..\Game.cs" Link="Game.cs" />
-    <Compile Include="..\GameObject.cs" Link="GameObject.cs" />
-    <Compile Include="..\SpaceShip.cs" Link="SpaceShip.cs" />
-    <Compile Include="..\Vecteur2d.cs" Link="Vecteur2d.cs" />
-  </ItemGroup>
-
 </Project>

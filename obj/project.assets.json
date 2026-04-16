@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Flavien\\Desktop\\SpaceInvader\\SpaceInvader\\SpaceInvader.csproj",
+      "projectUniqueName": "C:\\Users\\Flavien\\Desktop\\SpaceInvader\\SpaceInvader.csproj",
       "projectName": "SpaceInvader",
-      "projectPath": "C:\\Users\\Flavien\\Desktop\\SpaceInvader\\SpaceInvader\\SpaceInvader.csproj",
+      "projectPath": "C:\\Users\\Flavien\\Desktop\\SpaceInvader\\SpaceInvader.csproj",
       "packagesPath": "C:\\Users\\Flavien\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Flavien\\Desktop\\SpaceInvader\\SpaceInvader\\obj\\",
+      "outputPath": "C:\\Users\\Flavien\\Desktop\\SpaceInvader\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Flavien\\AppData\\Roaming\\NuGet\\NuGet.Config"
