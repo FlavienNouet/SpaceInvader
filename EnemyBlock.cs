@@ -47,12 +47,21 @@ public class EnemyBlock : GameObject
         }
 
         double lineY = Position.Y + lineCount * (shipImage.Height + 10);
-        double freeWidth = Math.Max(0, baseWidth - shipImage.Width);
-        double horizontalStep = nbShips > 1 ? freeWidth / (nbShips - 1) : 0;
+        const double preferredGap = 26;
+        double preferredStep = shipImage.Width + preferredGap;
+        double maxStepToFitBlock = nbShips > 1
+            ? Math.Max(shipImage.Width, (baseWidth - shipImage.Width) / (nbShips - 1))
+            : 0;
+        double horizontalStep = nbShips > 1 ? Math.Min(preferredStep, maxStepToFitBlock) : 0;
+
+        double lineUsedWidth = nbShips == 1
+            ? shipImage.Width
+            : shipImage.Width + (nbShips - 1) * horizontalStep;
+        double lineStartX = Position.X + (baseWidth - lineUsedWidth) / 2.0;
 
         for (int i = 0; i < nbShips; i++)
         {
-            double shipX = Position.X + i * horizontalStep;
+            double shipX = lineStartX + i * horizontalStep;
             SpaceShip enemy = new SpaceShip(game, new Vecteur2d(shipX, lineY), nbLives, (Bitmap)shipImage.Clone(), gameSize, 200, alternateImage);
             enemyShips.Add(enemy);
         }
