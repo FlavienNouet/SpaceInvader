@@ -4,18 +4,31 @@ public class EnemyBlock : GameObject
 {
     private readonly HashSet<SpaceShip> enemyShips = new();
     private readonly int baseWidth;
+    private readonly Size gameSize;
     private int lineCount;
+    private int horizontalDirection = 1;
+    private double horizontalSpeedPixelPerSecond = 30;
+
+    private const double DownStepPixels = 20;
+    private const double HorizontalSpeedIncrease = 8;
 
     public Size Size { get; private set; }
 
     public Vecteur2d Position { get; private set; }
 
     public EnemyBlock(Vecteur2d position, int baseWidth)
+    : this(position, baseWidth, SystemInformation.VirtualScreen.Size)
     {
+    }
+
+    public EnemyBlock(Vecteur2d position, int baseWidth, Size gameSize)
+    {
+    
         ArgumentNullException.ThrowIfNull(position);
 
         Position = position;
         this.baseWidth = Math.Max(1, baseWidth);
+        this.gameSize = gameSize;
         Size = Size.Empty;
     }
 
@@ -66,6 +79,26 @@ public class EnemyBlock : GameObject
 
     public override void Update(double deltaTimeSeconds)
     {
+         if (!IsAlive())
+        {
+            return;
+        }
+
+        double horizontalDelta = horizontalDirection * horizontalSpeedPixelPerSecond * deltaTimeSeconds;
+        bool hitLeftBorder = Position.X + horizontalDelta < 0;
+        bool hitRightBorder = Position.X + Size.Width + horizontalDelta > gameSize.Width;
+
+        if (hitLeftBorder || hitRightBorder)
+        {
+            horizontalDirection *= -1;
+            horizontalSpeedPixelPerSecond += HorizontalSpeedIncrease;
+            MoveShips(0, DownStepPixels);
+            UpdateSize();
+            return;
+        }
+
+        MoveShips(horizontalDelta, 0);
+        UpdateSize();
     }
 
     public override void Draw(Graphics graphics)
@@ -96,5 +129,12 @@ public class EnemyBlock : GameObject
         }
 
         UpdateSize();
+    }
+    private void MoveShips(double deltaX, double deltaY)
+    {
+        foreach (SpaceShip ship in enemyShips)
+        {
+            ship.Position = new Vecteur2d(ship.Position.X + deltaX, ship.Position.Y + deltaY);
+        }
     }
 }
