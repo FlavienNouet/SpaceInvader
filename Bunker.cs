@@ -2,10 +2,22 @@ namespace SpaceInvader;
 
 public class Bunker : SimpleObject
 {
+    private readonly Game? game;
 
     public Bunker(Vecteur2d position)
         : base(GameObject.Side.Neutral, position, 3, Game.CreateBunkerImage())
     {
+    }
+
+    public Bunker(Vecteur2d position, Game game)
+        : base(GameObject.Side.Neutral, position, 3, Game.CreateBunkerImage())
+    {
+        this.game = game;
+    }
+
+    protected override void OnCollision(Missile missile, int numberOfPixelsInCollision)
+    {
+        // Collision handling is implemented in Collision for this class.
     }
 
     public override void Collision(Missile missile)
@@ -26,6 +38,8 @@ public class Bunker : SimpleObject
         }
 
         bool hasCollision = false;
+        int impactScreenX = 0;
+        int impactScreenY = 0;
 
         for (int missileLocalY = 0; missileLocalY < missile.Image.Height && !hasCollision; missileLocalY++)
         {
@@ -56,6 +70,8 @@ public class Bunker : SimpleObject
                 }
 
                 Image.SetPixel(bunkerLocalX, bunkerLocalY, Color.Transparent);
+                impactScreenX = screenX;
+                impactScreenY = screenY;
                 hasCollision = true;
                 break;
             }
@@ -64,6 +80,16 @@ public class Bunker : SimpleObject
         if (hasCollision)
         {
             missile.Lives = Math.Max(0, missile.Lives - 1);
+
+            if (game is not null)
+            {
+                Bitmap impactImage = Game.CreateImpactExplosionImage();
+                Vecteur2d explosionPosition = new(
+                    impactScreenX - impactImage.Width / 2.0,
+                    impactScreenY - impactImage.Height / 2.0);
+
+                game.AddObject(new Explosion(explosionPosition, impactImage));
+            }
         }
     }
 

@@ -60,6 +60,11 @@ public class SpaceShip : SimpleObject
         graphics.DrawImage(imageToUse, new RectangleF((float)Position.X, (float)Position.Y, imageToUse.Width, imageToUse.Height));
     }
 
+    protected override void OnCollision(Missile missile, int numberOfPixelsInCollision)
+    {
+        // Collision handling is implemented in Collision for this class.
+    }
+
     public override void Collision(Missile missile)
     {
         ArgumentNullException.ThrowIfNull(missile);

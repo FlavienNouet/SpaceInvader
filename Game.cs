@@ -126,7 +126,7 @@ public class Game
         for (int i = 0; i < count; i++)
         {
             double x = gap * (i + 1) + bunkerWidth * i;
-            AddObject(new Bunker(new Vecteur2d(x, y)));
+            AddObject(new Bunker(new Vecteur2d(x, y), this));
         }
     }
      public void Update(double deltaTimeSeconds)
@@ -626,6 +626,18 @@ private void StartNextWave()
         }
         Bitmap original = new Bitmap(Image.FromFile(filePath));
         return ScaleImage(original, 2.0); // Scale explosion to 2x for visibility
+    }
+
+    internal static Bitmap CreateImpactExplosionImage()
+    {
+        string filePath = Path.Combine(AppContext.BaseDirectory, "assets", "Sprites", "Invaders", "space__0009_EnemyExplosion.png");
+        if (!File.Exists(filePath))
+        {
+            throw new FileNotFoundException($"Sprite file not found: {filePath}");
+        }
+
+        Bitmap original = new Bitmap(Image.FromFile(filePath));
+        return ScaleImage(original, 0.7); // Smaller impact effect for bunker hits
     }
 
         internal static Bitmap CreateMissileImage()
